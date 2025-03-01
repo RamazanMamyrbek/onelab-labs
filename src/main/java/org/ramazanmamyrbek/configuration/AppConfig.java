@@ -1,38 +1,30 @@
 package org.ramazanmamyrbek.configuration;
 
-import org.ramazanmamyrbek.repository.CourseRepository;
-import org.ramazanmamyrbek.repository.StudentRepository;
-import org.ramazanmamyrbek.repository.TeacherRepository;
-import org.ramazanmamyrbek.repository.impl.CourseRepositoryImpl;
-import org.ramazanmamyrbek.repository.impl.StudentRepositoryImpl;
-import org.ramazanmamyrbek.repository.impl.TeacherRepositoryImpl;
-import org.ramazanmamyrbek.services.SchoolService;
-import org.ramazanmamyrbek.services.impl.SchoolServiceImpl;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.*;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
+
+import javax.sql.DataSource;
 
 @Configuration
+@PropertySource("classpath:application.properties")
+@EnableAspectJAutoProxy
+@ComponentScan(basePackages = "org.ramazanmamyrbek")
 public class AppConfig {
-
     @Bean
-    public StudentRepository studentRepository() {
-        return new StudentRepositoryImpl();
+    public DataSource dataSource(@Value("${spring.datasource.schema}") String schema,
+                                 @Value("${spring.datasource.schema.data}") String data) {
+        return new EmbeddedDatabaseBuilder()
+                .setType(EmbeddedDatabaseType.H2)
+                .addScript(schema)
+                .addScript(data)
+                .build();
     }
 
     @Bean
-    public CourseRepository courseRepository() {
-        return new CourseRepositoryImpl();
-    }
-
-    @Bean
-    public TeacherRepository teacherRepository() {
-        return new TeacherRepositoryImpl();
-    }
-
-    @Bean
-    public SchoolService schoolService(StudentRepository studentRepository,
-                                                CourseRepository courseRepository,
-                                                TeacherRepository teacherRepository) {
-        return new SchoolServiceImpl(studentRepository, courseRepository, teacherRepository);
+    public JdbcTemplate jdbcTemplate(DataSource dataSource) {
+        return new JdbcTemplate(dataSource);
     }
 }
