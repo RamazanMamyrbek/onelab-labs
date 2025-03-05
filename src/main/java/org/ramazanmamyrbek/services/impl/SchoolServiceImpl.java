@@ -1,72 +1,76 @@
 package org.ramazanmamyrbek.services.impl;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.ramazanmamyrbek.entity.Course;
 import org.ramazanmamyrbek.entity.Student;
 import org.ramazanmamyrbek.entity.Teacher;
-import org.ramazanmamyrbek.repository.CourseRepository;
-import org.ramazanmamyrbek.repository.StudentRepository;
-import org.ramazanmamyrbek.repository.TeacherRepository;
+import org.ramazanmamyrbek.services.CourseService;
 import org.ramazanmamyrbek.services.SchoolService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.ramazanmamyrbek.services.StudentService;
+import org.ramazanmamyrbek.services.TeacherService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
+@Slf4j
 public class SchoolServiceImpl implements SchoolService {
-    private final StudentRepository studentRepository;
-    private final CourseRepository courseRepository;
-    private final TeacherRepository teacherRepository;
-    private final JdbcTemplate jdbcTemplate;
+    private final CourseService courseService;
+    private final StudentService studentService;
+    private final TeacherService teacherService;
 
-
-    @Autowired
-    public SchoolServiceImpl(StudentRepository studentRepository,
-                         CourseRepository courseRepository,
-                         TeacherRepository teacherRepository, JdbcTemplate jdbcTemplate) {
-        this.studentRepository = studentRepository;
-        this.courseRepository = courseRepository;
-        this.teacherRepository = teacherRepository;
-        this.jdbcTemplate = jdbcTemplate;
+    @Override
+    @Transactional
+    public void enrollStudentToCourse(Long studentId, Long courseId) {
+        courseService.addStudentToCourse(courseId, studentId);
     }
 
-    public void saveStudent(Student student) {
-        studentRepository.save(student);
+    @Override
+    @Transactional
+    public void enrollMultipleStudentsToCourse(List<Long> studentIds, Long courseId) {
+        for (Long studentId : studentIds) {
+            courseService.addStudentToCourse(courseId, studentId);
+        }
     }
 
-    public void saveTeacher(Teacher teacher) {
-        teacherRepository.save(teacher);
-    }
-
-    public void saveCourse(Course course) {
-        courseRepository.save(course);
-    }
-
-    public List<Student> getAllStudents() {
-        return studentRepository.findAll();
-    }
-
+    @Override
     public List<Course> getAllCourses() {
-        return courseRepository.findAll();
+        return courseService.getAllCourses();
     }
 
+    @Override
     public List<Teacher> getAllTeachers() {
-        return teacherRepository.findAll();
+        return teacherService.getAllTeachers();
     }
 
-    public List<String> getStudentNamesByCourseId(Long courseId) {
-        String sql = "SELECT s.name FROM student s " +
-                "JOIN student_course sc ON s.id = sc.student_id " +
-                "WHERE sc.course_id = ?";
-
-        return jdbcTemplate.query(sql, new Object[]{courseId}, (rs, rowNum) -> rs.getString("name"));
+    @Override
+    public List<Student> getAllStudents() {
+        return studentService.getAllStudents();
     }
 
-    public List<String> getCoursesByTeacherId(Long teacherId) {
-        String sql = "SELECT c.course_name FROM course c " +
-                "WHERE c.teacher_id = ?";
+    @Override
+    @Transactional
+    public void removeAllData() {
+        for (Course course : courseService.getAllCourses()) {
+            courseService.removeCourse(course.getId());
+        }
+        for (Student student : studentService.getAllStudents()) {
+            studentService.removeStudent(student.getId());
+        }
+        for (Teacher teacher : teacherService.getAllTeachers()) {
+            teacherService.deleteTeacher(teacher.getId());
+        }
+    }
 
-        return jdbcTemplate.query(sql, new Object[]{teacherId}, (rs, rowNum) -> rs.getString("course_name"));
+    @Override
+    public void generateReport() {
+        log.info("=== ШКОЛЬНЫЙ ОТЧЕТ ===");
+        log.info("Количество учителей: " + teacherService.getAllTeachers().size());
+        log.info("Количество студентов: " + studentService.getAllStudents().size());
+        log.info("Количество курсов: " + courseService.getAllCourses().size());
     }
 }

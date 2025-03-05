@@ -7,14 +7,17 @@ import org.ramazanmamyrbek.entity.Teacher;
 import java.util.List;
 
 public interface SchoolService {
-    void saveStudent(Student student);
-    void saveTeacher(Teacher teacher);
-    void saveCourse(Course course);
+    void enrollStudentToCourse(Long studentId, Long courseId);
 
-    List<Student> getAllStudents();
+    void enrollMultipleStudentsToCourse(List<Long> studentIds, Long courseId);
+
     List<Course> getAllCourses();
+
     List<Teacher> getAllTeachers();
 
-    List<String> getStudentNamesByCourseId(Long courseId);
-    List<String> getCoursesByTeacherId(Long teacherId);
+    List<Student> getAllStudents();
+
+    void removeAllData();
+
+    void generateReport();
 }
