@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SonarLintProjectSettings">
+    <option name="moduleMapping">
+      <map>
+        <entry key="courses-service" value="student-service" />
+        <entry key="users-service" value="course-service" />
+      </map>
+    </option>
+  </component>
+</project>
