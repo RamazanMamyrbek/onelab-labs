@@ -3,8 +3,9 @@ package com.onelab.courses_service.service.impl;
 import com.onelab.courses_service.entity.Course;
 import com.onelab.courses_service.entity.Lesson;
 import com.onelab.courses_service.mapper.CourseMapper;
-import com.onelab.courses_service.repository.LessonRepository;
-import com.onelab.courses_service.repository.CourseRepository;
+import com.onelab.courses_service.repository.elastic.CourseSearchRepository;
+import com.onelab.courses_service.repository.jpa.LessonRepository;
+import com.onelab.courses_service.repository.jpa.CourseRepository;
 import com.onelab.courses_service.service.CourseService;
 import lombok.RequiredArgsConstructor;
 import org.onelab.common.dto.request.*;
@@ -24,6 +25,7 @@ public class CourseServiceImpl implements CourseService {
     private final CourseRepository courseRepository;
     private final LessonRepository lessonRepository;
     private final CourseMapper courseMapper;
+    private final CourseSearchRepository courseSearchRepository;
 
     @Override
     public List<CourseResponseDto> getAllCourses() {
@@ -118,6 +120,14 @@ public class CourseServiceImpl implements CourseService {
         return courseRepository.findAllById(set)
                 .stream()
                 .map(course -> new CourseResponseDto(course.getId(), course.getName(), course.getTeacherId()))
+                .toList();
+    }
+
+    @Override
+    public List<CourseResponseDto> searchCoursesByName(String name) {
+        return courseSearchRepository.findByNameContainingIgnoreCase(name)
+                .stream()
+                .map(courseMapper::mapToCourseResponseDto)
                 .toList();
     }
 

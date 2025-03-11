@@ -1,5 +1,6 @@
 version: '3'
 services:
+  # Zookeeper
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
     container_name: zookeeper-onelab
@@ -9,6 +10,7 @@ services:
     networks:
       - kafka-net
 
+  # Kafka
   kafka:
     image: confluentinc/cp-kafka:latest
     container_name: kafka-onelab
@@ -24,5 +26,33 @@ services:
     networks:
       - kafka-net
 
+  # Elasticsearch
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.5.3
+    container_name: elasticsearch-onelab
+    environment:
+      - discovery.type=single-node
+      - ELASTIC_PASSWORD=changeme
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    networks:
+      - elastic-net
+
+  # Kibana (UI для Elasticsearch)
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.5.3
+    container_name: kibana-onelab
+    depends_on:
+      - elasticsearch
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    networks:
+      - elastic-net
+
 networks:
   kafka-net:
+  elastic-net:

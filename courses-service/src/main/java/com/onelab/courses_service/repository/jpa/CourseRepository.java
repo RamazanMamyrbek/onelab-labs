@@ -1,4 +1,4 @@
-package com.onelab.courses_service.repository;
+package com.onelab.courses_service.repository.jpa;
 
 import com.onelab.courses_service.entity.Course;
 import org.springframework.data.jpa.repository.JpaRepository;

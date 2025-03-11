@@ -32,5 +32,8 @@ public interface CourseService {
     List<CourseResponseDto> getAllCoursesByTeacher(Long teacherId);
 
     List<CourseResponseDto> findAllById(Set<Long> set);
+
+    List<CourseResponseDto> searchCoursesByName(String name);
+
 }
 
