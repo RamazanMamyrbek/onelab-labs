@@ -14,11 +14,11 @@
     <name>onelab-labs</name>
     <description>onelab-labs</description>
     <modules>
-        <module>console-service</module>
         <module>users-service</module>
         <module>courses-service</module>
         <module>notification-service</module>
         <module>eureka-server</module>
+        <module>common</module>
     </modules>
     <packaging>pom</packaging>
     <url/>

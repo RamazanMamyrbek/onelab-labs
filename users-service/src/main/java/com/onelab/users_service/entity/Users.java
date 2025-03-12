@@ -1,10 +1,13 @@
 package com.onelab.users_service.entity;
 
-import com.onelab.users_service.entity.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
+import org.onelab.common.enums.Role;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -18,10 +21,15 @@ import java.util.Set;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Users {
+public class Users implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "email", unique = true, nullable = false)
+    private String email;
+
+    private String passwordHash;
 
     private String name;
 
@@ -33,4 +41,19 @@ public class Users {
     @Column(name = "course_id")
     @Builder.Default
     private Set<Long> courseIds = new LinkedHashSet<>();
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority(role.name()));
+    }
+
+    @Override
+    public String getPassword() {
+        return passwordHash;
+    }
+
+    @Override
+    public String getUsername() {
+        return email;
+    }
 }

@@ -1,6 +1,6 @@
 spring:
   application:
-    name: course-service
+    name: users-service
   kafka:
     producer:
       bootstrap-servers: localhost:9092
@@ -52,3 +52,9 @@ eureka:
     register-with-eureka: true
     service-url:
       defaultZone: http://localhost:8070/eureka/
+
+security:
+  jwt:
+    secret: ZnJmcmZyZnN2dmZ2cnZlcmVldmV2UlZCUlZSUlZEU0RTVlJTVlZFVg==
+    access: 3600000
+    refresh: 2592000000

@@ -1,30 +1,38 @@
 package com.onelab.users_service.service;
 
 
+import com.onelab.users_service.entity.Users;
 import org.onelab.common.dto.request.AssignCourseDto;
-import org.onelab.common.dto.request.DeleteUserDto;
-import org.onelab.common.dto.request.UserRequestDto;
+import org.onelab.common.dto.request.UserEditRequestDto;
+import org.onelab.common.dto.request.UserRegisterRequestDto;
 import org.onelab.common.dto.response.CourseResponseDto;
+import org.onelab.common.dto.response.NotificationResponseDto;
 import org.onelab.common.dto.response.UsersResponseDto;
+import org.onelab.common.enums.Role;
 
 import java.util.List;
 
 public interface UserService {
-    List<UsersResponseDto> getAllStudents();
-
-    List<UsersResponseDto> getAllTeachers();
-
-    UsersResponseDto createStudent(UserRequestDto studentDto);
-
-    UsersResponseDto createTeacher(UserRequestDto teacherDto);
 
     void assignCourseToTeacher(AssignCourseDto assignCourseDto);
 
     void assignCourseToStudent(AssignCourseDto assignCourseDto);
 
-    void deleteTeacher(DeleteUserDto deleteUserDto);
-
-    void deleteStudent(DeleteUserDto deleteUserDto);
-
     List<CourseResponseDto> getStudentCourses(Long studentId);
+
+    List<UsersResponseDto> getAllUsers(Role role);
+
+    UsersResponseDto registerUser(UserRegisterRequestDto requestDto);
+
+    Users getUserByEmail(String username);
+
+    UsersResponseDto getUserInfoById(Long userId);
+
+    UsersResponseDto getUserProfileByEmail(String name);
+
+    UsersResponseDto editProfile(UserEditRequestDto requestDto, String email);
+
+    void deleteUserByEmail(String email);
+
+    List<NotificationResponseDto> getNotifications(String email, String authorization);
 }

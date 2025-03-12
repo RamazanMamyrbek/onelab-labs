@@ -21,4 +21,8 @@ public class BadRequestException extends RuntimeException{
     public static BadRequestException errorWhileGettingCourses(String message) {
         return new BadRequestException(message);
     }
+
+    public static BadRequestException userAlreadyExistsException(String email) {
+        return new BadRequestException("Email %s is already exists".formatted(email));
+    }
 }
