@@ -18,6 +18,7 @@
         <module>users-service</module>
         <module>courses-service</module>
         <module>notification-service</module>
+        <module>eureka-server</module>
     </modules>
     <packaging>pom</packaging>
     <url/>
