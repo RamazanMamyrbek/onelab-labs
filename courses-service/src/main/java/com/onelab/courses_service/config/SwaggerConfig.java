@@ -1,4 +1,4 @@
-package com.onelab.users_service.config;
+package com.onelab.courses_service.config;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @OpenAPIDefinition(
         info = @Info(
-                title = "User service",
+                title = "Courses service",
                 version = "1.0.0",
                 contact = @Contact(
                         name = "Ramazan Mamyrbek",

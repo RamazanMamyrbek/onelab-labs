@@ -15,4 +15,5 @@ public interface JwtFeignClient {
 
     @GetMapping(path = "/jwt/extract-email")
     public String getEmail(@RequestParam(name = "token") String token);
+
 }

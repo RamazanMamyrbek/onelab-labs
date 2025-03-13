@@ -1,3 +1,9 @@
 package org.onelab.common.dto.request;
 
-public record CourseRequestDto(String name) {}
+import jakarta.validation.constraints.NotBlank;
+
+public record CourseRequestDto(
+
+        @NotBlank(message = "Course name should not be blank")
+        String name
+) {}

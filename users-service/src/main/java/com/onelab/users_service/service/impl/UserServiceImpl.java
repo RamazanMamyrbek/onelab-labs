@@ -12,11 +12,13 @@ import org.onelab.common.dto.response.*;
 import org.onelab.common.enums.Role;
 import org.onelab.common.exception.BadRequestException;
 import org.onelab.common.exception.ResourceNotFoundException;
+import org.onelab.common.feign.CourseFeignClient;
 import org.onelab.common.feign.NotificationFeignClient;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.ErrorResponse;
 
 import java.util.List;
 
@@ -30,63 +32,28 @@ public class UserServiceImpl implements UserService {
     private final KafkaClient kafkaClient;
     private final PasswordEncoder passwordEncoder;
     private final NotificationFeignClient notificationFeignClient;
+    private final CourseFeignClient courseFeignClient;
 
 
     @Override
     @Transactional
-    public void assignCourseToTeacher(AssignCourseDto assignCourseDto) {
-//        Users teacher = getTeacherById(assignCourseDto.userId());
-//        Object response = kafkaClient.sendAndReceive(
-//                "course.request.setTeacher",
-//                assignCourseDto,
-//                Object.class
-//        );
-//        if(response instanceof ErrorResponse) {
-//            throw BadRequestException.errorWhileSettingTeacherToCourse(((ErrorResponse) response).message());
-//        }
-//        teacher.getCourseIds().add(assignCourseDto.courseId());
-//        teacher = userRepository.save(teacher);
-//        userServiceProducer.sendNotification(new NotificationDto(
-//                assignCourseDto.userId(),
-//                "Teacher with id %s was assigned to the course with id %s".formatted(assignCourseDto.userId(), assignCourseDto.courseId())
-//        ));-
+    public void assignCourseToStudent(AssignCourseDto assignCourseDto, String token) {
+        Users student = getStudentById(assignCourseDto.userId());
+        CourseResponseDto courseResponseDto = courseFeignClient.getCourseById(assignCourseDto.courseId(), token).getBody();
+        student.getCourseIds().add(assignCourseDto.courseId());
+        student = userRepository.save(student);
+        userServiceProducer.sendNotification(new NotificationDto(
+                assignCourseDto.userId(),
+                "Student with id %s was assigned to the course with id %s".formatted(assignCourseDto.userId(), assignCourseDto.courseId())
+        ));
     }
 
 
     @Override
-    @Transactional
-    public void assignCourseToStudent(AssignCourseDto assignCourseDto) {
-//        Users student = getStudentById(assignCourseDto.userId());
-//        Object response = kafkaClient.sendAndReceive(
-//                "course.request.getCourse",
-//                assignCourseDto.courseId(),
-//                Object.class
-//        );
-//        if(response instanceof ErrorResponse) {
-//            throw BadRequestException.errorWhileGettingCourse(((ErrorResponse) response).message());
-//        }
-//        student.getCourseIds().add(assignCourseDto.courseId());
-//        student = userRepository.save(student);
-//        userServiceProducer.sendNotification(new NotificationDto(
-//                assignCourseDto.userId(),
-//                "Student with id %s was assigned to the course with id %s".formatted(assignCourseDto.userId(), assignCourseDto.courseId())
-//        ));
-    }
-
-
-    @Override
-    public List<CourseResponseDto> getStudentCourses(Long studentId) {
-//        Users student = getStudentById(studentId);
-//        Object response = kafkaClient.sendAndReceive(
-//                "course.request.findAllById",
-//                new FindAllCoursesSetWrapper(student.getCourseIds()),
-//                Object.class
-//        );
-//        if(response instanceof ErrorResponse) {
-//            throw BadRequestException.errorWhileGettingCourses(((ErrorResponse) response).message());
-//        }
-//        return ((FindAllCoursesWrapper)response).list();
-        return null;
+    public List<CourseResponseDto> getStudentCourses(Long studentId, String token) {
+        Users student = getStudentById(studentId);
+        List<CourseResponseDto> courseResponseDtoList = courseFeignClient.getCoursesByIds(student.getCourseIds(), token).getBody();
+        return courseResponseDtoList;
     }
 
     @Override

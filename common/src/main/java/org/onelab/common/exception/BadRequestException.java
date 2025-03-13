@@ -25,4 +25,8 @@ public class BadRequestException extends RuntimeException{
     public static BadRequestException userAlreadyExistsException(String email) {
         return new BadRequestException("Email %s is already exists".formatted(email));
     }
+
+    public static BadRequestException invalidTeacherException(Long userId, Long courseId) {
+        return new BadRequestException("Teacher with id %s is not owner of course with id %s".formatted(userId, courseId));
+    }
 }

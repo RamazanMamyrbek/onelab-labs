@@ -11,7 +11,10 @@ import lombok.RequiredArgsConstructor;
 import org.onelab.common.dto.request.*;
 import org.onelab.common.dto.response.CourseResponseDto;
 import org.onelab.common.dto.response.LessonResponseDto;
+import org.onelab.common.dto.response.UsersResponseDto;
+import org.onelab.common.exception.BadRequestException;
 import org.onelab.common.exception.ResourceNotFoundException;
+import org.onelab.common.feign.UserFeignClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +29,7 @@ public class CourseServiceImpl implements CourseService {
     private final LessonRepository lessonRepository;
     private final CourseMapper courseMapper;
     private final CourseSearchRepository courseSearchRepository;
+    private final UserFeignClient userFeignClient;
 
     @Override
     public List<CourseResponseDto> getAllCourses() {
@@ -46,17 +50,23 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     @Transactional
-    public CourseResponseDto createCourse(CourseRequestDto requestDto) {
+    public CourseResponseDto createCourse(CourseRequestDto requestDto, String token) {
+        UsersResponseDto usersResponseDto = userFeignClient.getProfileInfo(token).getBody();
         Course course = new Course();
         course.setName(requestDto.name());
+        course.setTeacherId(usersResponseDto.id());
         courseRepository.save(course);
         return courseMapper.mapToCourseResponseDto(course);
     }
 
     @Override
     @Transactional
-    public LessonResponseDto addLessonToCourse(LessonRequestDto requestDto) {
+    public LessonResponseDto addLessonToCourse(LessonRequestDto requestDto, String name, String token) {
+        UsersResponseDto usersResponseDto = userFeignClient.getProfileInfo(token).getBody();
         Course course = getCourseById(requestDto.courseId());
+        if(!usersResponseDto.id().equals(course.getTeacherId())) {
+            throw BadRequestException.invalidTeacherException(usersResponseDto.id(), course.getId());
+        }
         Lesson lesson = Lesson.builder()
                 .title(requestDto.title())
                 .course(course)
@@ -67,32 +77,53 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     @Transactional
-    public CourseResponseDto updateCourse(CourseUpdateRequestDto requestDto) {
+    public CourseResponseDto updateCourse(CourseUpdateRequestDto requestDto, String token) {
+        UsersResponseDto usersResponseDto = userFeignClient.getProfileInfo(token).getBody();
         Course course = getCourseById(requestDto.courseId());
+        if(!usersResponseDto.id().equals(course.getTeacherId())) {
+            throw BadRequestException.invalidTeacherException(usersResponseDto.id(), course.getId());
+        }
         course.setName(requestDto.newName());
         return courseMapper.mapToCourseResponseDto(courseRepository.save(course));
     }
 
     @Override
     @Transactional
-    public LessonResponseDto updateLesson(LessonUpdateRequestDto requestDto) {
+    public LessonResponseDto updateLesson(LessonUpdateRequestDto requestDto, String token) {
+        UsersResponseDto usersResponseDto = userFeignClient.getProfileInfo(token).getBody();
         Lesson lesson = lessonRepository.findById(requestDto.lessonId())
                 .orElseThrow(() -> ResourceNotFoundException.lessonNotFound(requestDto.lessonId()));
+        Course course = lesson.getCourse();
+        if(!usersResponseDto.id().equals(course.getTeacherId())) {
+            throw BadRequestException.invalidTeacherException(usersResponseDto.id(), course.getId());
+        }
         lesson.setTitle(requestDto.newTitle());
         return courseMapper.mapToLessonResponseDto(lessonRepository.save(lesson));
     }
 
     @Override
     @Transactional
-    public void deleteCourse(CourseDeleteRequestDto requestDto) {
+    public void deleteCourse(CourseDeleteRequestDto requestDto, String token) {
+        Course course = getCourseById(requestDto.courseId());
+        UsersResponseDto usersResponseDto = userFeignClient.getProfileInfo(token).getBody();
+        if(!usersResponseDto.id().equals(course.getTeacherId())) {
+            throw BadRequestException.invalidTeacherException(usersResponseDto.id(), course.getId());
+        }
         courseRepository.deleteById(requestDto.courseId());
     }
 
     @Override
     @Transactional
-    public void deleteLesson(LessonDeleteRequestDto requestDto) {
+    public void deleteLesson(LessonDeleteRequestDto requestDto, String token) {
+        Lesson lesson = getLessonById(requestDto.lessonId());
+        Course course = lesson.getCourse();
+        UsersResponseDto usersResponseDto = userFeignClient.getProfileInfo(token).getBody();
+        if(!usersResponseDto.id().equals(course.getTeacherId())) {
+            throw BadRequestException.invalidTeacherException(usersResponseDto.id(), course.getId());
+        }
         lessonRepository.deleteById(requestDto.lessonId());
     }
+
 
     @Override
     @Transactional
@@ -134,5 +165,11 @@ public class CourseServiceImpl implements CourseService {
     private Course getCourseById(Long courseId) {
         return courseRepository.findById(courseId)
                 .orElseThrow(() -> ResourceNotFoundException.courseNotFound(courseId));
+    }
+
+    private Lesson getLessonById(Long lessonId) {
+        return lessonRepository.findById(lessonId).orElseThrow(
+                () -> ResourceNotFoundException.lessonNotFound(lessonId)
+        );
     }
 }

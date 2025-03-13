@@ -13,17 +13,14 @@ public interface CourseService {
 
     List<LessonResponseDto> getLessonsForCourse(Long courseId);
 
-    CourseResponseDto createCourse(CourseRequestDto requestDto);
+    CourseResponseDto createCourse(CourseRequestDto requestDto, String token);
+    CourseResponseDto updateCourse(CourseUpdateRequestDto requestDto, String token);
 
-    LessonResponseDto addLessonToCourse(LessonRequestDto requestDto);
+    LessonResponseDto updateLesson(LessonUpdateRequestDto requestDto, String token);
 
-    CourseResponseDto updateCourse(CourseUpdateRequestDto requestDto);
+    void deleteCourse(CourseDeleteRequestDto requestDto, String token);
 
-    LessonResponseDto updateLesson(LessonUpdateRequestDto requestDto);
-
-    void deleteCourse(CourseDeleteRequestDto requestDto);
-
-    void deleteLesson(LessonDeleteRequestDto requestDto);
+    void deleteLesson(LessonDeleteRequestDto requestDto, String token);
 
     CourseResponseDto setTeacher(AssignCourseDto requestDto);
 
@@ -35,5 +32,6 @@ public interface CourseService {
 
     List<CourseResponseDto> searchCoursesByName(String name);
 
+    LessonResponseDto addLessonToCourse(LessonRequestDto lessonRequestDto, String name, String authorization);
 }
 

@@ -14,11 +14,9 @@ import java.util.List;
 
 public interface UserService {
 
-    void assignCourseToTeacher(AssignCourseDto assignCourseDto);
+    void assignCourseToStudent(AssignCourseDto assignCourseDto, String token);
 
-    void assignCourseToStudent(AssignCourseDto assignCourseDto);
-
-    List<CourseResponseDto> getStudentCourses(Long studentId);
+    List<CourseResponseDto> getStudentCourses(Long studentId, String token);
 
     List<UsersResponseDto> getAllUsers(Role role);
 
