@@ -22,11 +22,9 @@ public interface CourseService {
 
     void deleteLesson(LessonDeleteRequestDto requestDto, String token);
 
-    CourseResponseDto setTeacher(AssignCourseDto requestDto);
 
     CourseResponseDto getCourse(Long courseId);
 
-    List<CourseResponseDto> getAllCoursesByTeacher(Long teacherId);
 
     List<CourseResponseDto> findAllById(Set<Long> set);
 

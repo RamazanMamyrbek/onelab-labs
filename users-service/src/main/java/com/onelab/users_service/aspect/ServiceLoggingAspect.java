@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 @Aspect
 @Component
 @Slf4j
-public class LoggingAspect {
+public class ServiceLoggingAspect {
 
     @Around("execution(* com.onelab.users_service.service.UserService.*(..))")
     public Object logAround(ProceedingJoinPoint joinPoint) throws Throwable {

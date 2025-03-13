@@ -59,7 +59,7 @@ public class UserRestController {
 
     @DeleteMapping
     @Operation(summary = "Delete my profile")
-    private ResponseEntity<Void> deleteProfile(Principal principal) {
+    public ResponseEntity<Void> deleteProfile(Principal principal) {
         userService.deleteUserByEmail(principal.getName());
         return ResponseEntity.noContent().build();
     }

@@ -124,26 +124,9 @@ public class CourseServiceImpl implements CourseService {
         lessonRepository.deleteById(requestDto.lessonId());
     }
 
-
-    @Override
-    @Transactional
-    public CourseResponseDto setTeacher(AssignCourseDto requestDto) {
-        Course course = getCourseById(requestDto.courseId());
-        course.setTeacherId(requestDto.userId());
-        return courseMapper.mapToCourseResponseDto(courseRepository.save(course));
-    }
-
     @Override
     public CourseResponseDto getCourse(Long courseId) {
         return courseMapper.mapToCourseResponseDto(getCourseById(courseId));
-    }
-
-    @Override
-    public List<CourseResponseDto> getAllCoursesByTeacher(Long teacherId) {
-        return courseRepository.findAllByTeacherId(teacherId)
-                .stream()
-                .map(course -> new CourseResponseDto(course.getId(), course.getName(), course.getTeacherId()))
-                .toList();
     }
 
     @Override
