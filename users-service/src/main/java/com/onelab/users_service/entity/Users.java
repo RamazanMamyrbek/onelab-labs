@@ -33,6 +33,10 @@ public class Users implements UserDetails {
 
     private String name;
 
+    private String country;
+
+    private Long age;
+
     @Enumerated(EnumType.STRING)
     private Role role;
 

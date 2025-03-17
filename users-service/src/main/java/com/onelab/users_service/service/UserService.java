@@ -26,11 +26,13 @@ public interface UserService {
 
     UsersResponseDto getUserInfoById(Long userId);
 
-    UsersResponseDto getUserProfileByEmail(String name);
+    UsersResponseDto getUserProfileByEmail(String email);
 
     UsersResponseDto editProfile(UserEditRequestDto requestDto, String email);
 
     void deleteUserByEmail(String email);
 
     List<NotificationResponseDto> getNotifications(String email, String authorization);
+
+    List<UsersResponseDto> searchUsers(String nameQuery, Long minAge, Long maxAge, String country,Role role, int page, int size);
 }

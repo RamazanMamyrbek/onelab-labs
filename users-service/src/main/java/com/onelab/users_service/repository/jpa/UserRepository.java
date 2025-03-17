@@ -1,4 +1,4 @@
-package com.onelab.users_service.repository;
+package com.onelab.users_service.repository.jpa;
 
 import com.onelab.users_service.entity.Users;
 import org.onelab.common.enums.Role;

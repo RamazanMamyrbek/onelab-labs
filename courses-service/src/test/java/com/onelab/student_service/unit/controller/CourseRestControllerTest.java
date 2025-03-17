@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -45,7 +46,7 @@ class CourseRestControllerTest {
 
     @Test
     void shouldGetAllCourses() throws Exception {
-        CourseResponseDto course = new CourseResponseDto(1L, "Java Basics", 100L);
+        CourseResponseDto course = new CourseResponseDto(1L, "Java Basics", "", LocalDateTime.now(),100L);
         when(courseService.getAllCourses()).thenReturn(List.of(course));
 
         String response = mockMvc.perform(get("/api/courses"))
@@ -59,7 +60,7 @@ class CourseRestControllerTest {
 
     @Test
     void shouldGetCourseById() throws Exception {
-        CourseResponseDto course = new CourseResponseDto(1L, "Java Basics", 100L);
+        CourseResponseDto course = new CourseResponseDto(1L, "Java Basics", "",LocalDateTime.now(),100L);
         when(courseService.getCourse(1L)).thenReturn(course);
 
         String response = mockMvc.perform(get("/api/courses/1"))
@@ -73,7 +74,7 @@ class CourseRestControllerTest {
 
     @Test
     void shouldGetCoursesByIds() throws Exception {
-        CourseResponseDto course = new CourseResponseDto(1L, "Java Basics", 100L);
+        CourseResponseDto course = new CourseResponseDto(1L, "Java Basics", "", LocalDateTime.now(),100L);
         when(courseService.findAllById(Set.of(1L))).thenReturn(List.of(course));
 
         String response = mockMvc.perform(post("/api/courses/byIds")
@@ -88,8 +89,8 @@ class CourseRestControllerTest {
 
     @Test
     void shouldCreateCourse() throws Exception {
-        CourseRequestDto requestDto = new CourseRequestDto("Spring Boot");
-        CourseResponseDto responseDto = new CourseResponseDto(1L, "Spring Boot", 100L);
+        CourseRequestDto requestDto = new CourseRequestDto("Spring Boot", "");
+        CourseResponseDto responseDto = new CourseResponseDto(1L, "Spring Boot", "",LocalDateTime.now(),100L);
 
         when(courseService.createCourse(any(), any())).thenReturn(responseDto);
 
@@ -107,7 +108,7 @@ class CourseRestControllerTest {
     @Test
     void shouldEditCourse() throws Exception {
         CourseUpdateRequestDto requestDto = new CourseUpdateRequestDto(1L, "Updated Java Basics");
-        CourseResponseDto responseDto = new CourseResponseDto(1L, "Updated Java Basics", 100L);
+        CourseResponseDto responseDto = new CourseResponseDto(1L, "Updated Java Basics", "", LocalDateTime.now(),100L);
 
         when(courseService.updateCourse(any(), any())).thenReturn(responseDto);
 

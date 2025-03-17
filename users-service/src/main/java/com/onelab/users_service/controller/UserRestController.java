@@ -33,6 +33,21 @@ public class UserRestController {
         return ResponseEntity.ok(responseDtoList);
     }
 
+    @GetMapping("/search")
+    @Operation(summary = "Search users")
+    public ResponseEntity<List<UsersResponseDto>> searchUsers(
+            @RequestParam(value = "nameQuery", required = false) String nameQuery,
+            @RequestParam(value = "minAge", required = false, defaultValue = "7") Long minAge,
+            @RequestParam(value = "maxAge", required = false) Long maxAge,
+            @RequestParam(value = "country", required = false) String country,
+            @RequestParam(value = "role", required = false) Role role,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size
+    ) {
+        List<UsersResponseDto> usersResponseDtoList = userService.searchUsers(nameQuery, minAge, maxAge, country, role, page, size);
+        return ResponseEntity.ok(usersResponseDtoList);
+    }
+
 
 
     @GetMapping("/{userId}")

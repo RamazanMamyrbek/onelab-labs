@@ -112,5 +112,18 @@ public class CoursesRestController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/search")
+    @Operation(summary = "Search courses by criteries")
+    public ResponseEntity<List<CourseResponseDto>> searchCourses(
+            @RequestParam(value = "query", required = false) String query,
+            @RequestParam(value = "minPrice", required = false, defaultValue = "0") Long minPrice,
+            @RequestParam(value = "maxPrice", required = false) Long maxPrice,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size
+    ) {
+        List<CourseResponseDto> courses = courseService.searchCourses(query, minPrice, maxPrice, page, size);
+        return ResponseEntity.ok(courses);
+    }
+
 
 }

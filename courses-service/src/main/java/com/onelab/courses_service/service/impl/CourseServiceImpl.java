@@ -2,10 +2,11 @@ package com.onelab.courses_service.service.impl;
 
 import com.onelab.courses_service.entity.Course;
 import com.onelab.courses_service.entity.Lesson;
+import com.onelab.courses_service.entity.elastic.CourseIndex;
 import com.onelab.courses_service.mapper.CourseMapper;
 import com.onelab.courses_service.repository.elastic.CourseSearchRepository;
-import com.onelab.courses_service.repository.jpa.LessonRepository;
 import com.onelab.courses_service.repository.jpa.CourseRepository;
+import com.onelab.courses_service.repository.jpa.LessonRepository;
 import com.onelab.courses_service.service.CourseService;
 import lombok.RequiredArgsConstructor;
 import org.onelab.common.dto.request.*;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -54,10 +56,14 @@ public class CourseServiceImpl implements CourseService {
         UsersResponseDto usersResponseDto = userFeignClient.getProfileInfo(token).getBody();
         Course course = new Course();
         course.setName(requestDto.name());
+        course.setDescription(requestDto.description());
         course.setTeacherId(usersResponseDto.id());
+        course.setPrice(requestDto.price());
         courseRepository.save(course);
+        reindexCourses();
         return courseMapper.mapToCourseResponseDto(course);
     }
+
 
     @Override
     @Transactional
@@ -76,6 +82,38 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
+    public List<CourseResponseDto> searchCourses(String query, Long minPrice, Long maxPrice, int page, int size) {
+//        Pageable pageRequest = PageRequest.of(page, size);
+        if(query== null || query.isBlank()) {
+            return getAllCourses()
+                    .stream()
+                    .filter(courseResponseDto ->
+                            courseResponseDto.price() >= (minPrice != null ? minPrice : 0) &&
+                                    (maxPrice == null || courseResponseDto.price() <= maxPrice)
+                    )
+                    .collect(Collectors.toList());
+        }
+//        Page<CourseIndex> courseIndexPage = courseSearchRepository.findByNameContainingIgnoreCase(query, pageRequest);
+//        Set<Long> idsSet = courseIndexPage.stream()
+//                .map(courseIndex -> courseIndex.getId())
+//                .collect(Collectors.toSet());
+        List<CourseIndex> courseIndexList = courseSearchRepository.findByNameContainingIgnoreCase(query);
+        Set<Long> idsSet = courseIndexList.stream()
+                .map(courseIndex -> courseIndex.getId())
+                .collect(Collectors.toSet());
+        List<CourseResponseDto> courseResponseDtos = courseRepository.findAllById(idsSet)
+                .stream()
+                .map(course -> courseMapper.mapToCourseResponseDto(course))
+                .filter(courseResponseDto ->
+                        courseResponseDto.price() >= (minPrice != null ? minPrice : 0) &&
+                                (maxPrice == null || courseResponseDto.price() <= maxPrice)
+                )
+                .collect(Collectors.toList());
+
+        return courseResponseDtos;
+    }
+
+    @Override
     @Transactional
     public CourseResponseDto updateCourse(CourseUpdateRequestDto requestDto, String token) {
         UsersResponseDto usersResponseDto = userFeignClient.getProfileInfo(token).getBody();
@@ -84,7 +122,11 @@ public class CourseServiceImpl implements CourseService {
             throw BadRequestException.invalidTeacherException(usersResponseDto.id(), course.getId());
         }
         course.setName(requestDto.newName());
-        return courseMapper.mapToCourseResponseDto(courseRepository.save(course));
+        course.setDescription(requestDto.description());
+        course.setPrice(requestDto.price());
+        course = courseRepository.save(course);
+        reindexCourses();
+        return courseMapper.mapToCourseResponseDto(course);
     }
 
     @Override
@@ -110,6 +152,7 @@ public class CourseServiceImpl implements CourseService {
             throw BadRequestException.invalidTeacherException(usersResponseDto.id(), course.getId());
         }
         courseRepository.deleteById(requestDto.courseId());
+        reindexCourses();
     }
 
     @Override
@@ -133,17 +176,10 @@ public class CourseServiceImpl implements CourseService {
     public List<CourseResponseDto> findAllById(Set<Long> set) {
         return courseRepository.findAllById(set)
                 .stream()
-                .map(course -> new CourseResponseDto(course.getId(), course.getName(), course.getTeacherId()))
+                .map(course -> courseMapper.mapToCourseResponseDto(course))
                 .toList();
     }
 
-    @Override
-    public List<CourseResponseDto> searchCoursesByName(String name) {
-        return courseSearchRepository.findByNameContainingIgnoreCase(name)
-                .stream()
-                .map(courseMapper::mapToCourseResponseDto)
-                .toList();
-    }
 
     private Course getCourseById(Long courseId) {
         return courseRepository.findById(courseId)
@@ -153,6 +189,12 @@ public class CourseServiceImpl implements CourseService {
     private Lesson getLessonById(Long lessonId) {
         return lessonRepository.findById(lessonId).orElseThrow(
                 () -> ResourceNotFoundException.lessonNotFound(lessonId)
+        );
+    }
+
+    private void reindexCourses() {
+        courseSearchRepository.saveAll(
+                courseRepository.findAll().stream().map(course -> courseMapper.toCourseIndex(course)).collect(Collectors.toList())
         );
     }
 }

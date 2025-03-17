@@ -2,13 +2,20 @@ package com.onelab.users_service.service.impl;
 
 import com.onelab.users_service.config.KafkaClient;
 import com.onelab.users_service.entity.Users;
+import com.onelab.users_service.entity.elastic.UsersIndex;
 import com.onelab.users_service.mapper.UserMapper;
 import com.onelab.users_service.producer.UserServiceProducer;
-import com.onelab.users_service.repository.UserRepository;
+import com.onelab.users_service.repository.elastic.UsersSearchRepository;
+import com.onelab.users_service.repository.jpa.UserRepository;
 import com.onelab.users_service.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.onelab.common.dto.request.*;
-import org.onelab.common.dto.response.*;
+import org.onelab.common.dto.request.AssignCourseDto;
+import org.onelab.common.dto.request.NotificationDto;
+import org.onelab.common.dto.request.UserEditRequestDto;
+import org.onelab.common.dto.request.UserRegisterRequestDto;
+import org.onelab.common.dto.response.CourseResponseDto;
+import org.onelab.common.dto.response.NotificationResponseDto;
+import org.onelab.common.dto.response.UsersResponseDto;
 import org.onelab.common.enums.Role;
 import org.onelab.common.exception.BadRequestException;
 import org.onelab.common.exception.ResourceNotFoundException;
@@ -18,9 +25,10 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.ErrorResponse;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +41,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final NotificationFeignClient notificationFeignClient;
     private final CourseFeignClient courseFeignClient;
+    private final UsersSearchRepository usersSearchRepository;
 
 
     @Override
@@ -75,10 +84,13 @@ public class UserServiceImpl implements UserService {
                 .builder()
                 .email(requestDto.email())
                 .name(requestDto.name())
+                .country(requestDto.country())
+                .age(requestDto.age())
                 .passwordHash(passwordEncoder.encode(requestDto.password()))
                 .role(requestDto.role())
                 .build();
         user = userRepository.save(user);
+        reindexUsers();
         userServiceProducer.sendNotification(new NotificationDto(user.getId(), "User with email %s was registered".formatted(user.getEmail())));
         return userMapper.mapToUserResponseDTO(user);
     }
@@ -106,7 +118,10 @@ public class UserServiceImpl implements UserService {
         Users user = getUserByEmail(email);
         user.setRole(requestDto.role());
         user.setName(requestDto.name());
+        user.setCountry(requestDto.country());
+        user.setAge(requestDto.age());
         user = userRepository.save(user);
+        reindexUsers();
         userServiceProducer.sendNotification(new NotificationDto(user.getId(), "User with email %s was edited".formatted(email)));
         return userMapper.mapToUserResponseDTO(user);
     }
@@ -116,6 +131,7 @@ public class UserServiceImpl implements UserService {
     public void deleteUserByEmail(String email) {
         Users user = getUserByEmail(email);
         userRepository.delete(user);
+        reindexUsers();
         userServiceProducer.sendNotification(new NotificationDto(user.getId(), "User with email %s was deleted".formatted(email)));
     }
 
@@ -124,6 +140,35 @@ public class UserServiceImpl implements UserService {
         Users user = getUserByEmail(email);
         List<NotificationResponseDto> responseDtoList = notificationFeignClient.getNotificationsByUserId(token, user.getId());
         return responseDtoList;
+    }
+
+    @Override
+    public List<UsersResponseDto> searchUsers(String nameQuery, Long minAge, Long maxAge, String country, Role role, int page, int size) {
+        if (nameQuery == null || nameQuery.isBlank()) {
+            return getAllUsers(role)
+                    .parallelStream()
+                    .filter(usersResponseDto -> country == null || usersResponseDto.country().equals(country))
+                    .filter(usersResponseDto ->
+                            usersResponseDto.age() >= (minAge != null ? minAge : 7) &&
+                                    (maxAge == null || usersResponseDto.age() <= maxAge))
+                    .filter(usersResponseDto -> role == null || usersResponseDto.role().equals(role))
+                    .collect(Collectors.toList());
+        }
+
+        List<UsersIndex> usersIndices = usersSearchRepository.findAllByNameContainingIgnoreCase(nameQuery);
+        Set<Long> idsSet = usersIndices.stream()
+                .map(UsersIndex::getId)
+                .collect(Collectors.toSet());
+
+        return userRepository.findAllById(idsSet)
+                .parallelStream()
+                .map(userMapper::mapToUserResponseDTO)
+                .filter(usersResponseDto -> country == null || usersResponseDto.country().equals(country))
+                .filter(usersResponseDto ->
+                        usersResponseDto.age() >= (minAge != null ? minAge : 7) &&
+                                (maxAge == null || usersResponseDto.age() <= maxAge))
+                .filter(usersResponseDto -> role == null || usersResponseDto.role().equals(role))
+                .toList();
     }
 
 
@@ -146,6 +191,15 @@ public class UserServiceImpl implements UserService {
     private Users getUserById(Long userId) {
         return userRepository.findById(userId).orElseThrow(
                 () -> ResourceNotFoundException.userNotFound(userId)
+        );
+    }
+
+    private void reindexUsers() {
+        usersSearchRepository.saveAll(
+                userRepository.findAll().stream().map(
+                                user -> new UsersIndex(user.getId(), user.getName())
+                        )
+                        .collect(Collectors.toList())
         );
     }
 }

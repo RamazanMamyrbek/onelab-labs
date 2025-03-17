@@ -177,14 +177,5 @@ class CoursesServiceImplTest {
     }
 
 
-    @Test
-    void shouldSearchCoursesByName() {
-        when(courseSearchRepository.findByNameContainingIgnoreCase("Java")).thenReturn(List.of(course));
-        when(courseMapper.mapToCourseResponseDto(course)).thenReturn(courseResponseDto);
 
-        List<CourseResponseDto> result = courseService.searchCoursesByName("Java");
-
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).name()).isEqualTo("Java Course");
-    }
 }

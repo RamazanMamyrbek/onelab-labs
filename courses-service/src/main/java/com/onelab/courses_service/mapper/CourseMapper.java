@@ -2,6 +2,7 @@ package com.onelab.courses_service.mapper;
 
 import com.onelab.courses_service.entity.Course;
 import com.onelab.courses_service.entity.Lesson;
+import com.onelab.courses_service.entity.elastic.CourseIndex;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -20,4 +21,6 @@ public interface CourseMapper {
     default Long mapCourseToId(Course course) {
         return course != null ? course.getId() : null;
     }
+
+    CourseIndex toCourseIndex(Course course);
 }

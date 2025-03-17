@@ -23,7 +23,7 @@ public class StudentsController {
     private final UserService userService;
 
     @PostMapping
-    @Operation(summary = "Enroll to course (ONLY FOR TEACHERS)")
+    @Operation(summary = "Enroll to student to your course (ONLY FOR TEACHERS)")
     @PreAuthorize("hasRole('ROLE_TEACHER')")
     public ResponseEntity<Void> enrollToCourse(@RequestBody AssignCourseDto assignCourseDto,
                                                HttpServletRequest request) {

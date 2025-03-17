@@ -28,8 +28,8 @@ public interface CourseService {
 
     List<CourseResponseDto> findAllById(Set<Long> set);
 
-    List<CourseResponseDto> searchCoursesByName(String name);
-
     LessonResponseDto addLessonToCourse(LessonRequestDto lessonRequestDto, String name, String authorization);
+
+    List<CourseResponseDto> searchCourses(String query, Long minPrice, Long maxPrice, int page, int size);
 }
 
