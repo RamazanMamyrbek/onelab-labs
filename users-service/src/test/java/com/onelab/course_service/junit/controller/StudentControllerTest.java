@@ -13,6 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import jakarta.servlet.http.HttpServletRequest;
+
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -48,8 +50,8 @@ class StudentControllerTest {
         HttpServletRequest request = mock(HttpServletRequest.class);
 
         List<CourseResponseDto> courses = List.of(
-                new CourseResponseDto(102L, "Test Course 1", 1L),
-                new CourseResponseDto(103L, "Test Course 2", 1L)
+                new CourseResponseDto(102L, "Test Course 1", "DESCRIPTION", 100000L, LocalDateTime.now(), 1L),
+                new CourseResponseDto(103L, "Test Course 2", "DESCRIPTION", 100000L, LocalDateTime.now(),1L)
         );
 
         when(request.getHeader("Authorization")).thenReturn(token);

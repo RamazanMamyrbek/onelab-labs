@@ -51,8 +51,8 @@ class AuthControllerTest {
 
     @Test
     void shouldRegisterUserSuccessfully() throws Exception {
-        UserRegisterRequestDto requestDto = new UserRegisterRequestDto("john@example.com", "password123", "John Doe", Role.ROLE_STUDENT);
-        UsersResponseDto responseDto = new UsersResponseDto(1L,  "john@example.com", "John Doe", Role.ROLE_STUDENT.name());
+        UserRegisterRequestDto requestDto = new UserRegisterRequestDto("john@example.com", "password123", "John Doe","Kazakhstan", 27L, Role.ROLE_STUDENT);
+        UsersResponseDto responseDto = new UsersResponseDto(1L,  "john@example.com", "John Doe","Kazakhstan", 27L, Role.ROLE_STUDENT.name());
 
         when(userService.registerUser(any(UserRegisterRequestDto.class))).thenReturn(responseDto);
 

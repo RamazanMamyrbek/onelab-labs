@@ -2,6 +2,7 @@ package com.onelab.student_service.unit.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.onelab.courses_service.controller.CoursesRestController;
 import com.onelab.courses_service.service.CourseService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -46,7 +47,7 @@ class CourseRestControllerTest {
 
     @Test
     void shouldGetAllCourses() throws Exception {
-        CourseResponseDto course = new CourseResponseDto(1L, "Java Basics", "", LocalDateTime.now(),100L);
+        CourseResponseDto course = new CourseResponseDto(1L, "Java Basics", "",100000L, LocalDateTime.now(),100L);
         when(courseService.getAllCourses()).thenReturn(List.of(course));
 
         String response = mockMvc.perform(get("/api/courses"))
@@ -60,7 +61,7 @@ class CourseRestControllerTest {
 
     @Test
     void shouldGetCourseById() throws Exception {
-        CourseResponseDto course = new CourseResponseDto(1L, "Java Basics", "",LocalDateTime.now(),100L);
+        CourseResponseDto course = new CourseResponseDto(1L, "Java Basics", "",100000L, LocalDateTime.now(),100L);
         when(courseService.getCourse(1L)).thenReturn(course);
 
         String response = mockMvc.perform(get("/api/courses/1"))
@@ -74,7 +75,7 @@ class CourseRestControllerTest {
 
     @Test
     void shouldGetCoursesByIds() throws Exception {
-        CourseResponseDto course = new CourseResponseDto(1L, "Java Basics", "", LocalDateTime.now(),100L);
+        CourseResponseDto course = new CourseResponseDto(1L, "Java Basics", "",100000L, LocalDateTime.now(),100L);
         when(courseService.findAllById(Set.of(1L))).thenReturn(List.of(course));
 
         String response = mockMvc.perform(post("/api/courses/byIds")
@@ -89,8 +90,8 @@ class CourseRestControllerTest {
 
     @Test
     void shouldCreateCourse() throws Exception {
-        CourseRequestDto requestDto = new CourseRequestDto("Spring Boot", "");
-        CourseResponseDto responseDto = new CourseResponseDto(1L, "Spring Boot", "",LocalDateTime.now(),100L);
+        CourseRequestDto requestDto = new CourseRequestDto("Spring Boot", "", 100000l);
+        CourseResponseDto responseDto = new CourseResponseDto(1L, "Spring Boot", "",100000L, LocalDateTime.now(),100L);
 
         when(courseService.createCourse(any(), any())).thenReturn(responseDto);
 
@@ -107,8 +108,8 @@ class CourseRestControllerTest {
 
     @Test
     void shouldEditCourse() throws Exception {
-        CourseUpdateRequestDto requestDto = new CourseUpdateRequestDto(1L, "Updated Java Basics");
-        CourseResponseDto responseDto = new CourseResponseDto(1L, "Updated Java Basics", "", LocalDateTime.now(),100L);
+        CourseUpdateRequestDto requestDto = new CourseUpdateRequestDto(1L, "Updated Java Basics", "", 100000L);
+        CourseResponseDto responseDto = new CourseResponseDto(1L, "Updated Java Basics","",100000L, LocalDateTime.now(),100L);
 
         when(courseService.updateCourse(any(), any())).thenReturn(responseDto);
 
@@ -152,4 +153,46 @@ class CourseRestControllerTest {
         verify(courseService, times(1)).addLessonToCourse(any(), any(), any());
     }
 
+    @Test
+    void getStudentCount_ShouldReturnStudentCount_WhenCourseExists() throws Exception {
+        Long courseId = 1L;
+        Long expectedCount = 42L;
+
+        when(courseService.getStudentCount(eq(courseId), any(HttpServletRequest.class)))
+                .thenReturn(expectedCount);
+
+        mockMvc.perform(get("/api/courses/{courseId}/students", courseId))
+                .andExpect(status().isOk())
+                .andExpect(content().string("42"));
+
+        verify(courseService).getStudentCount(eq(courseId), any(HttpServletRequest.class));
+    }
+
+    @Test
+    void searchCourses_ShouldReturnFilteredCourses() throws Exception {
+        List<CourseResponseDto> mockCourses = List.of(
+                new CourseResponseDto(1L, "Java Basics", "",5000L, LocalDateTime.now(), 1L),
+                new CourseResponseDto(2L, "Spring Boot", "",7000L, LocalDateTime.now(), 1L)
+        );
+
+        when(courseService.searchCourses(anyString(), anyLong(), anyLong(), anyInt(), anyInt()))
+                .thenReturn(mockCourses);
+
+        mockMvc.perform(get("/api/courses/search")
+                        .param("query", "Java")
+                        .param("minPrice", "1000")
+                        .param("maxPrice", "10000")
+                        .param("page", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()").value(2))
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].name").value("Java Basics"))
+                .andExpect(jsonPath("$[0].price").value(5000))
+                .andExpect(jsonPath("$[1].id").value(2))
+                .andExpect(jsonPath("$[1].name").value("Spring Boot"))
+                .andExpect(jsonPath("$[1].price").value(7000));
+
+        verify(courseService).searchCourses("Java", 1000L, 10000L, 0, 10);
+    }
 }

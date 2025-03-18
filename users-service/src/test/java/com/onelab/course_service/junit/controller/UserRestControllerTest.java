@@ -42,8 +42,8 @@ class UserRestControllerTest {
     @Test
     void shouldReturnAllUsersSuccessfully() throws Exception {
         List<UsersResponseDto> users = List.of(
-                new UsersResponseDto(1L, "user1@example.com", "User One", Role.ROLE_STUDENT.name()),
-                new UsersResponseDto(2L, "user2@example.com", "User Two", Role.ROLE_STUDENT.name())
+                new UsersResponseDto(1L, "user1@example.com", "User One","Kazakhstan", 27L, Role.ROLE_STUDENT.name()),
+                new UsersResponseDto(2L, "user2@example.com", "User Two","Kazakhstan", 27L, Role.ROLE_STUDENT.name())
         );
 
         when(userService.getAllUsers(null)).thenReturn(users);
@@ -60,7 +60,7 @@ class UserRestControllerTest {
 
     @Test
     void shouldReturnUserInfoSuccessfully() throws Exception {
-        UsersResponseDto user = new UsersResponseDto(1L, "user@example.com", "User One", Role.ROLE_STUDENT.name());
+        UsersResponseDto user = new UsersResponseDto(1L, "user@example.com", "User One","Kazakhstan", 27L, Role.ROLE_STUDENT.name());
 
         when(userService.getUserInfoById(1L)).thenReturn(user);
 
@@ -76,7 +76,7 @@ class UserRestControllerTest {
     void shouldReturnProfileInfoSuccessfully() throws Exception {
         String username = "user@example.com";
         Principal principal = () -> username;
-        UsersResponseDto user = new UsersResponseDto(1L, username, "User One", Role.ROLE_STUDENT.name());
+        UsersResponseDto user = new UsersResponseDto(1L, username, "User One","Kazakhstan", 27L, Role.ROLE_STUDENT.name());
 
         when(userService.getUserProfileByEmail(username)).thenReturn(user);
 
@@ -99,5 +99,52 @@ class UserRestControllerTest {
                         .principal(principal))
                 .andExpect(status().isNoContent());
     }
+
+    @Test
+    void shouldReturnStudentsForCourseSuccessfully() throws Exception {
+        Long courseId = 1L;
+        List<UsersResponseDto> students = List.of(
+                new UsersResponseDto(1L, "student1@example.com", "Student One", "Kazakhstan", 20L, Role.ROLE_STUDENT.name()),
+                new UsersResponseDto(2L, "student2@example.com", "Student Two", "Kazakhstan", 21L, Role.ROLE_STUDENT.name())
+        );
+
+        when(userService.getStudentsForCourse(courseId)).thenReturn(students);
+
+        mockMvc.perform(get("/api/users/courses/{courseId}/students", courseId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()").value(2))
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].email").value("student1@example.com"))
+                .andExpect(jsonPath("$[1].id").value(2))
+                .andExpect(jsonPath("$[1].email").value("student2@example.com"));
+    }
+
+    @Test
+    void shouldSearchUsersSuccessfully() throws Exception {
+        List<UsersResponseDto> users = List.of(
+                new UsersResponseDto(1L, "user1@example.com", "User One", "Kazakhstan", 27L, Role.ROLE_STUDENT.name()),
+                new UsersResponseDto(2L, "user2@example.com", "User Two", "Kazakhstan", 30L, Role.ROLE_TEACHER.name())
+        );
+
+        when(userService.searchUsers("User", 18L, 40L, "Kazakhstan", Role.ROLE_STUDENT, 0, 10)).thenReturn(users);
+
+        mockMvc.perform(get("/api/users/search")
+                        .param("nameQuery", "User")
+                        .param("minAge", "18")
+                        .param("maxAge", "40")
+                        .param("country", "Kazakhstan")
+                        .param("role", "ROLE_STUDENT")
+                        .param("page", "0")
+                        .param("size", "10")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()").value(2))
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].email").value("user1@example.com"))
+                .andExpect(jsonPath("$[1].id").value(2))
+                .andExpect(jsonPath("$[1].email").value("user2@example.com"));
+    }
+
 }
 
