@@ -48,6 +48,13 @@ public class UserRestController {
         return ResponseEntity.ok(usersResponseDtoList);
     }
 
+    @GetMapping("/courses/{courseId}/students")
+    @Operation(summary = "Get students for course")
+    ResponseEntity<List<UsersResponseDto>> getStudentsForCourse(@PathVariable Long courseId) {
+        List<UsersResponseDto> responseDtoList = userService.getStudentsForCourse(courseId);
+        return ResponseEntity.ok(responseDtoList);
+    }
+
 
 
     @GetMapping("/{userId}")

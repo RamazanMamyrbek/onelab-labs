@@ -1,6 +1,7 @@
 package com.onelab.courses_service.service;
 
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.onelab.common.dto.request.*;
 import org.onelab.common.dto.response.CourseResponseDto;
 import org.onelab.common.dto.response.LessonResponseDto;
@@ -31,5 +32,7 @@ public interface CourseService {
     LessonResponseDto addLessonToCourse(LessonRequestDto lessonRequestDto, String name, String authorization);
 
     List<CourseResponseDto> searchCourses(String query, Long minPrice, Long maxPrice, int page, int size);
+
+    Long getStudentCount(Long courseId, HttpServletRequest servletRequest);
 }
 

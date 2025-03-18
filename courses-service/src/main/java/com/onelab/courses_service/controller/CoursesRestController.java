@@ -125,5 +125,12 @@ public class CoursesRestController {
         return ResponseEntity.ok(courses);
     }
 
+    @GetMapping("/{courseId}/students")
+    @Operation(summary = "Get students count for course")
+    public ResponseEntity<Long> getStudentCount(@PathVariable Long courseId,
+                                                HttpServletRequest httpServletRequest) {
+        Long studentsCount = courseService.getStudentCount(courseId, httpServletRequest);
+        return ResponseEntity.ok(studentsCount);
+    }
 
 }

@@ -8,6 +8,7 @@ import com.onelab.courses_service.repository.elastic.CourseSearchRepository;
 import com.onelab.courses_service.repository.jpa.CourseRepository;
 import com.onelab.courses_service.repository.jpa.LessonRepository;
 import com.onelab.courses_service.service.CourseService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.onelab.common.dto.request.*;
 import org.onelab.common.dto.response.CourseResponseDto;
@@ -111,6 +112,12 @@ public class CourseServiceImpl implements CourseService {
                 .collect(Collectors.toList());
 
         return courseResponseDtos;
+    }
+
+    @Override
+    public Long getStudentCount(Long courseId, HttpServletRequest httpServletRequest) {
+        List<UsersResponseDto> students = userFeignClient.getStudentsForCourse(courseId, httpServletRequest.getHeader("Authorization")).getBody();
+        return students.stream().map(user -> 1L).reduce(0L, Long::sum);
     }
 
     @Override

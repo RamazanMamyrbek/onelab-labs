@@ -171,6 +171,16 @@ public class UserServiceImpl implements UserService {
                 .toList();
     }
 
+    @Override
+    public List<UsersResponseDto> getStudentsForCourse(Long courseId) {
+        return userRepository.findAll()
+                .stream()
+                .filter(user -> user.getCourseIds().contains(courseId))
+                .filter(user -> user.getRole().equals(Role.ROLE_STUDENT))
+                .map(userMapper::mapToUserResponseDTO)
+                .collect(Collectors.toList());
+    }
+
 
     private Users getTeacherById(Long id) {
         Users user = getUserById(id);

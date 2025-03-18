@@ -35,4 +35,6 @@ public interface UserService {
     List<NotificationResponseDto> getNotifications(String email, String authorization);
 
     List<UsersResponseDto> searchUsers(String nameQuery, Long minAge, Long maxAge, String country,Role role, int page, int size);
+
+    List<UsersResponseDto> getStudentsForCourse(Long courseId);
 }
