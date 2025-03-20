@@ -37,4 +37,6 @@ public interface UserService {
     List<UsersResponseDto> searchUsers(String nameQuery, Long minAge, Long maxAge, String country,Role role, int page, int size);
 
     List<UsersResponseDto> getStudentsForCourse(Long courseId);
+
+    Users getUserById(Long senderId);
 }

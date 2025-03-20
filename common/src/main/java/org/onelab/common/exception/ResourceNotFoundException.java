@@ -25,4 +25,8 @@ public class ResourceNotFoundException extends RuntimeException{
     public static ResourceNotFoundException teacherNotFound(Long id) {
         return new ResourceNotFoundException("Teacher with id %s was not found".formatted(id));
     }
+
+    public static ResourceNotFoundException chatNotFound(String chatId) {
+        return new ResourceNotFoundException("Chat with id %s was not found".formatted(chatId));
+    }
 }
