@@ -17,9 +17,13 @@ import org.onelab.common.dto.response.UsersResponseDto;
 import org.onelab.common.exception.BadRequestException;
 import org.onelab.common.exception.ResourceNotFoundException;
 import org.onelab.common.feign.UserFeignClient;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -84,9 +88,9 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public List<CourseResponseDto> searchCourses(String query, Long minPrice, Long maxPrice, int page, int size) {
-//        Pageable pageRequest = PageRequest.of(page, size);
+        Pageable pageRequest = PageRequest.of(page, size);
         if(query== null || query.isBlank()) {
-            return getAllCourses()
+            return getAllCourses(pageRequest)
                     .stream()
                     .filter(courseResponseDto ->
                             courseResponseDto.price() >= (minPrice != null ? minPrice : 0) &&
@@ -94,12 +98,8 @@ public class CourseServiceImpl implements CourseService {
                     )
                     .collect(Collectors.toList());
         }
-//        Page<CourseIndex> courseIndexPage = courseSearchRepository.findByNameContainingIgnoreCase(query, pageRequest);
-//        Set<Long> idsSet = courseIndexPage.stream()
-//                .map(courseIndex -> courseIndex.getId())
-//                .collect(Collectors.toSet());
-        List<CourseIndex> courseIndexList = courseSearchRepository.findByNameContainingIgnoreCase(query);
-        Set<Long> idsSet = courseIndexList.stream()
+        Page<CourseIndex> courseIndexPage = courseSearchRepository.findByNameContainingIgnoreCase(query, pageRequest);
+        Set<Long> idsSet = courseIndexPage.stream()
                 .map(courseIndex -> courseIndex.getId())
                 .collect(Collectors.toSet());
         List<CourseResponseDto> courseResponseDtos = courseRepository.findAllById(idsSet)
@@ -113,6 +113,7 @@ public class CourseServiceImpl implements CourseService {
 
         return courseResponseDtos;
     }
+
 
     @Override
     public Long getStudentCount(Long courseId, HttpServletRequest httpServletRequest) {
@@ -158,6 +159,7 @@ public class CourseServiceImpl implements CourseService {
         if(!usersResponseDto.id().equals(course.getTeacherId())) {
             throw BadRequestException.invalidTeacherException(usersResponseDto.id(), course.getId());
         }
+        userFeignClient.removeCourseFromStudents(course.getId(), token);
         courseRepository.deleteById(requestDto.courseId());
         reindexCourses();
     }
@@ -203,5 +205,12 @@ public class CourseServiceImpl implements CourseService {
         courseSearchRepository.saveAll(
                 courseRepository.findAll().stream().map(course -> courseMapper.toCourseIndex(course)).collect(Collectors.toList())
         );
+    }
+
+    private List<CourseResponseDto> getAllCourses(Pageable pageRequest) {
+        return courseRepository.findAll(pageRequest)
+                .stream()
+                .map(courseMapper::mapToCourseResponseDto)
+                .toList();
     }
 }

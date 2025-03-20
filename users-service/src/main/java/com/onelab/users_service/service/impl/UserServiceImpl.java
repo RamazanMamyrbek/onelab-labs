@@ -1,6 +1,5 @@
 package com.onelab.users_service.service.impl;
 
-import com.onelab.users_service.config.KafkaClient;
 import com.onelab.users_service.entity.Users;
 import com.onelab.users_service.entity.elastic.UsersIndex;
 import com.onelab.users_service.mapper.UserMapper;
@@ -21,6 +20,9 @@ import org.onelab.common.exception.BadRequestException;
 import org.onelab.common.exception.ResourceNotFoundException;
 import org.onelab.common.feign.CourseFeignClient;
 import org.onelab.common.feign.NotificationFeignClient;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -37,7 +39,6 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final UserServiceProducer userServiceProducer;
-    private final KafkaClient kafkaClient;
     private final PasswordEncoder passwordEncoder;
     private final NotificationFeignClient notificationFeignClient;
     private final CourseFeignClient courseFeignClient;
@@ -144,19 +145,19 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UsersResponseDto> searchUsers(String nameQuery, Long minAge, Long maxAge, String country, Role role, int page, int size) {
+        Pageable pageRequest = PageRequest.of(page, size);
         if (nameQuery == null || nameQuery.isBlank()) {
-            return getAllUsers(role)
+            return getAllUsers(role, pageRequest)
                     .parallelStream()
                     .filter(usersResponseDto -> country == null || usersResponseDto.country().equals(country))
                     .filter(usersResponseDto ->
                             usersResponseDto.age() >= (minAge != null ? minAge : 7) &&
                                     (maxAge == null || usersResponseDto.age() <= maxAge))
-                    .filter(usersResponseDto -> role == null || usersResponseDto.role().equals(role))
+                    .filter(usersResponseDto -> role == null || usersResponseDto.role().equals(role.name()))
                     .collect(Collectors.toList());
         }
-
-        List<UsersIndex> usersIndices = usersSearchRepository.findAllByNameContainingIgnoreCase(nameQuery);
-        Set<Long> idsSet = usersIndices.stream()
+        Page<UsersIndex> usersIndexPage = usersSearchRepository.findAllByNameContainingIgnoreCase(nameQuery, pageRequest);
+        Set<Long> idsSet = usersIndexPage.stream()
                 .map(UsersIndex::getId)
                 .collect(Collectors.toSet());
 
@@ -167,9 +168,10 @@ public class UserServiceImpl implements UserService {
                 .filter(usersResponseDto ->
                         usersResponseDto.age() >= (minAge != null ? minAge : 7) &&
                                 (maxAge == null || usersResponseDto.age() <= maxAge))
-                .filter(usersResponseDto -> role == null || usersResponseDto.role().equals(role))
+                .filter(usersResponseDto -> role == null || usersResponseDto.role().equals(role.name()))
                 .toList();
     }
+
 
     @Override
     public List<UsersResponseDto> getStudentsForCourse(Long courseId) {
@@ -205,6 +207,12 @@ public class UserServiceImpl implements UserService {
         );
     }
 
+    @Override
+    @Transactional
+    public void removeCourseFromStudents(Long courseId) {
+        userRepository.removeCourseFromStudents(courseId);
+    }
+
     private void reindexUsers() {
         usersSearchRepository.saveAll(
                 userRepository.findAll().stream().map(
@@ -212,6 +220,14 @@ public class UserServiceImpl implements UserService {
                         )
                         .collect(Collectors.toList())
         );
+    }
+
+    private List<UsersResponseDto> getAllUsers(Role role, Pageable pageRequest) {
+        return userRepository.findAll(pageRequest)
+                .stream()
+                .filter(user -> role == null || user.getRole().equals(role))
+                .map(userMapper::mapToUserResponseDTO)
+                .toList();
     }
 }
 

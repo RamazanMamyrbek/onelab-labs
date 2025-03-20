@@ -1,6 +1,7 @@
 package com.onelab.users_service.controller;
 
 import com.onelab.users_service.service.UserService;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -37,5 +38,12 @@ public class StudentsController {
                                                                      HttpServletRequest request) {
         List<CourseResponseDto> responseDtoList = userService.getStudentCourses(studentId, request.getHeader("Authorization"));
         return ResponseEntity.ok(responseDtoList);
+    }
+
+    @Hidden
+    @DeleteMapping("/courses/{courseId}")
+    public ResponseEntity<Void> removeCourseFromStudents(@PathVariable Long courseId) {
+        userService.removeCourseFromStudents(courseId);
+        return ResponseEntity.noContent().build();
     }
 }

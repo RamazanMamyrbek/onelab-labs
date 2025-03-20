@@ -29,21 +29,6 @@ spring:
 server:
   port: 8083
 
-# Topics properties
-kafka:
-  topics:
-    user:
-      request:
-        getAllStudents: user.request.getAllStudents
-        getAllTeachers: user.request.getAllTeachers
-        createStudent: user.request.createStudent
-        createTeacher: user.request.createTeacher
-        assignCourseToTeacher: user.request.assignCourseToTeacher
-        assignCourseToStudent: user.request.assignCourseToStudent
-        deleteTeacher: user.request.deleteTeacher
-        deleteStudent: user.request.deleteStudent
-        getStudentCourses: user.request.getStudentCourses
-
 eureka:
   instance:
     prefer-ip-address: true

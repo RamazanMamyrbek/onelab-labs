@@ -7,24 +7,10 @@ import org.springframework.kafka.config.TopicBuilder;
 
 @Configuration
 public class KafkaTopicConfig {
-
     @Bean
     public NewTopic newTopic() {
         return TopicBuilder
                 .name("notification-topic")
-                .build();
-    }
-
-    @Bean
-    public NewTopic getNotificationsTopic() {
-        return TopicBuilder
-                .name("notification.request.getNotifications")
-                .build();
-    }
-    @Bean
-    public NewTopic getNotificationsResponseTopic() {
-        return TopicBuilder
-                .name("notification-service.responses-topic")
                 .build();
     }
 }

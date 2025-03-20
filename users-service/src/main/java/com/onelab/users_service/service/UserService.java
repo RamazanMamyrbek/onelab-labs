@@ -39,4 +39,6 @@ public interface UserService {
     List<UsersResponseDto> getStudentsForCourse(Long courseId);
 
     Users getUserById(Long senderId);
+
+    void removeCourseFromStudents(Long chatId);
 }

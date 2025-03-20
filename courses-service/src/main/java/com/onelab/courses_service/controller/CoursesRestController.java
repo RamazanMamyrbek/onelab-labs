@@ -1,6 +1,7 @@
 package com.onelab.courses_service.controller;
 
 import com.onelab.courses_service.service.CourseService;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -45,6 +46,7 @@ public class CoursesRestController {
 
     @PostMapping("/byIds")
     @Operation(summary = "Get courses by ids")
+    @Hidden
     public ResponseEntity<List<CourseResponseDto>> getCoursesByIds(@RequestBody Set<Long> ids) {
         List<CourseResponseDto> responseDtoList = courseService.findAllById(ids);
         return ResponseEntity.ok(responseDtoList);
