@@ -26,6 +26,22 @@ services:
     networks:
       - kafka-net
 
+  # PostgreSQL
+  postgres:
+    image: postgres:15
+    container_name: postgres-onelab
+    restart: always
+    ports:
+      - "5555:5432"
+    environment:
+      POSTGRES_DB: onelab-project
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: your_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - db-net
+
   # Elasticsearch
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.5.3
@@ -40,19 +56,41 @@ services:
     networks:
       - elastic-net
 
-  # Kibana (UI для Elasticsearch)
-  kibana:
-    image: docker.elastic.co/kibana/kibana:8.5.3
-    container_name: kibana-onelab
-    depends_on:
-      - elasticsearch
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+  # MinIO
+  onelab-minio:
+    image: minio/minio
     ports:
-      - "5601:5601"
+      - "9090:9090"
+      - "9000:9000"
+    volumes:
+      - ~/minio/data:/data
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    command: server /data --console-address :9090
     networks:
-      - elastic-net
+      - storage-net
+
+  create-buckets:
+    image: minio/mc
+    depends_on:
+      - onelab-minio
+    entrypoint: >
+      /bin/sh -c "
+      sleep 10;
+      /usr/bin/mc alias set minio http://onelab-minio:9000 minioadmin minioadmin;
+      /usr/bin/mc mb --ignore-existing minio/projectbucket;
+      /usr/bin/mc anonymous set download minio/projectbucket;
+      exit 0;
+      "
+    networks:
+      - storage-net
 
 networks:
   kafka-net:
   elastic-net:
+  storage-net:
+  db-net:
+
+volumes:
+  postgres_data:

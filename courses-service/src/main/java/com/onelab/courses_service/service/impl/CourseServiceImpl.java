@@ -13,17 +13,20 @@ import lombok.RequiredArgsConstructor;
 import org.onelab.common.dto.request.*;
 import org.onelab.common.dto.response.CourseResponseDto;
 import org.onelab.common.dto.response.LessonResponseDto;
+import org.onelab.common.dto.response.ResourceResponseDto;
 import org.onelab.common.dto.response.UsersResponseDto;
 import org.onelab.common.exception.BadRequestException;
 import org.onelab.common.exception.ResourceNotFoundException;
+import org.onelab.common.feign.ResourceFeignClient;
 import org.onelab.common.feign.UserFeignClient;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -37,6 +40,9 @@ public class CourseServiceImpl implements CourseService {
     private final CourseMapper courseMapper;
     private final CourseSearchRepository courseSearchRepository;
     private final UserFeignClient userFeignClient;
+    private final ResourceFeignClient resourceFeignClient;
+    @Value("${minio.folders.lessonsFolder}")
+    private String lessonsFolder;
 
     @Override
     public List<CourseResponseDto> getAllCourses() {
@@ -87,6 +93,26 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
+    @Transactional
+    public LessonResponseDto uploadFileForLesson(Long lessonId, MultipartFile file, String email, String token) {
+        UsersResponseDto usersResponseDto = userFeignClient.getProfileInfo(token).getBody();
+        Lesson lesson = getLessonById(lessonId);
+        Course course = lesson.getCourse();
+        if(!usersResponseDto.id().equals(course.getTeacherId())) {
+            throw BadRequestException.invalidTeacherException(usersResponseDto.id(), course.getId());
+        }
+        resourceFeignClient.checkFile(file);
+        if(lesson.getResourceId() != null) {
+            ResourceResponseDto resource = resourceFeignClient.updateFile(lesson.getResourceId(), file).getBody();
+            lesson.setResourceId(resource.id());
+        } else {
+            ResourceResponseDto resource = resourceFeignClient.uploadFile(file, lessonsFolder).getBody();
+            lesson.setResourceId(resource.id());
+        }
+        return courseMapper.mapToLessonResponseDto(lessonRepository.save(lesson));
+    }
+
+    @Override
     public List<CourseResponseDto> searchCourses(String query, Long minPrice, Long maxPrice, int page, int size) {
         Pageable pageRequest = PageRequest.of(page, size);
         if(query== null || query.isBlank()) {
@@ -120,6 +146,7 @@ public class CourseServiceImpl implements CourseService {
         List<UsersResponseDto> students = userFeignClient.getStudentsForCourse(courseId, httpServletRequest.getHeader("Authorization")).getBody();
         return students.stream().map(user -> 1L).reduce(0L, Long::sum);
     }
+
 
     @Override
     @Transactional
@@ -160,9 +187,11 @@ public class CourseServiceImpl implements CourseService {
             throw BadRequestException.invalidTeacherException(usersResponseDto.id(), course.getId());
         }
         userFeignClient.removeCourseFromStudents(course.getId(), token);
+        deleteLessonFiles(course);
         courseRepository.deleteById(requestDto.courseId());
         reindexCourses();
     }
+
 
     @Override
     @Transactional
@@ -173,6 +202,7 @@ public class CourseServiceImpl implements CourseService {
         if(!usersResponseDto.id().equals(course.getTeacherId())) {
             throw BadRequestException.invalidTeacherException(usersResponseDto.id(), course.getId());
         }
+        resourceFeignClient.deleteFile(lesson.getResourceId());
         lessonRepository.deleteById(requestDto.lessonId());
     }
 
@@ -187,6 +217,13 @@ public class CourseServiceImpl implements CourseService {
                 .stream()
                 .map(course -> courseMapper.mapToCourseResponseDto(course))
                 .toList();
+    }
+
+    private void deleteLessonFiles(Course course) {
+        course.getLessons()
+                .forEach(lesson ->
+                        resourceFeignClient.deleteFile(lesson.getResourceId())
+                );
     }
 
 

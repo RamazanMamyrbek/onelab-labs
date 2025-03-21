@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.onelab.common.dto.request.*;
 import org.onelab.common.dto.response.CourseResponseDto;
 import org.onelab.common.dto.response.LessonResponseDto;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Set;
@@ -34,5 +35,7 @@ public interface CourseService {
     List<CourseResponseDto> searchCourses(String query, Long minPrice, Long maxPrice, int page, int size);
 
     Long getStudentCount(Long courseId, HttpServletRequest servletRequest);
+
+    LessonResponseDto uploadFileForLesson(Long lessonId, MultipartFile file, String email, String token);
 }
 

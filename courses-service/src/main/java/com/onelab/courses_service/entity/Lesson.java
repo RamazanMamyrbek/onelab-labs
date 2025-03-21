@@ -22,4 +22,7 @@ public class Lesson {
     @ManyToOne
     @JoinColumn(name = "course_id", referencedColumnName = "id")
     private Course course;
+
+    @Column(name = "resource_id")
+    private Long resourceId;
 }

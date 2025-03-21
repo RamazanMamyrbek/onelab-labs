@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: resource-service
+  datasource:
+    url: jdbc:postgresql://localhost:5555/onelab-project
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: your_password
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  servlet:
+    multipart:
+      max-request-size: 200MB
+      max-file-size: 200MB
+server:
+  port: 8085
+
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    service-url:
+      defaultZone: http://localhost:8070/eureka/
+
+# Minio config
+minio:
+  url: http://localhost:9000
+  accessKey: minioadmin
+  secretKey: minioadmin
+  bucketName: projectbucket
+  allowedTypes:
+    allowedAchievementTypes: image/png,image/jpeg,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/msword
+    allowedImageTypes: image/png,image/jpeg

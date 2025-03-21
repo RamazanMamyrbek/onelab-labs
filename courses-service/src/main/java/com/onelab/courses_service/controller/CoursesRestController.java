@@ -11,10 +11,12 @@ import org.onelab.common.dto.request.*;
 import org.onelab.common.dto.response.CourseResponseDto;
 import org.onelab.common.dto.response.LessonResponseDto;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
 import java.util.List;
@@ -133,6 +135,17 @@ public class CoursesRestController {
                                                 HttpServletRequest httpServletRequest) {
         Long studentsCount = courseService.getStudentCount(courseId, httpServletRequest);
         return ResponseEntity.ok(studentsCount);
+    }
+
+    @PostMapping(value = "/lessons/{lessonId}/upload-file", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Upload a file for a lesson")
+    @PreAuthorize("hasRole('ROLE_TEACHER')")
+    public ResponseEntity<LessonResponseDto> uploadFileForLesson(@PathVariable Long lessonId,
+                                                                 @RequestParam MultipartFile file,
+                                                                 Principal principal,
+                                                                 HttpServletRequest servletRequest){
+        LessonResponseDto responseDto = courseService.uploadFileForLesson(lessonId, file, principal.getName(), servletRequest.getHeader("Authorization"));
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 
 }
