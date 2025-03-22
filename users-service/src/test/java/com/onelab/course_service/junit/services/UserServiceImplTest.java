@@ -78,7 +78,7 @@ class UserServiceImplTest {
         when(courseFeignClient.getCourseById(102L, token)).thenReturn(ResponseEntity.ok(courseResponse));
         when(userRepository.save(any(Users.class))).thenReturn(testUser);
 
-        userService.assignCourseToStudent(assignCourseDto, token);
+        userService.assignCourseToStudent(assignCourseDto, "email", token);
 
         assertThat(testUser.getCourseIds()).contains(102L);
         verify(userRepository, times(1)).save(any(Users.class));

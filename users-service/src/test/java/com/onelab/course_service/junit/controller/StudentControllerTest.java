@@ -40,7 +40,7 @@ class StudentControllerTest {
         ResponseEntity<Void> response = studentsController.enrollToCourse(assignCourseDto, request);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
-        verify(userService, times(1)).assignCourseToStudent(assignCourseDto, token);
+        verify(userService, times(1)).assignCourseToStudent(assignCourseDto, token, request.getHeader("Authorization"));
     }
 
     @Test

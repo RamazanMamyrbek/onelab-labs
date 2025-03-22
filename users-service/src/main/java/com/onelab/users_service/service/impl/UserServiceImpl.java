@@ -8,10 +8,7 @@ import com.onelab.users_service.repository.elastic.UsersSearchRepository;
 import com.onelab.users_service.repository.jpa.UserRepository;
 import com.onelab.users_service.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.onelab.common.dto.request.AssignCourseDto;
-import org.onelab.common.dto.request.NotificationDto;
-import org.onelab.common.dto.request.UserEditRequestDto;
-import org.onelab.common.dto.request.UserRegisterRequestDto;
+import org.onelab.common.dto.request.*;
 import org.onelab.common.dto.response.CourseResponseDto;
 import org.onelab.common.dto.response.NotificationResponseDto;
 import org.onelab.common.dto.response.UsersResponseDto;
@@ -47,9 +44,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void assignCourseToStudent(AssignCourseDto assignCourseDto, String token) {
+    public void assignCourseToStudent(AssignCourseDto assignCourseDto, String email, String token) {
         Users student = getStudentById(assignCourseDto.userId());
         CourseResponseDto courseResponseDto = courseFeignClient.getCourseById(assignCourseDto.courseId(), token).getBody();
+        Users teacher = getUserByEmail(email);
+        if(!teacher.getRole().equals(Role.ROLE_TEACHER) || !courseResponseDto.teacherId().equals(teacher.getId())) {
+            throw BadRequestException.invalidTeacherException(teacher.getId(), courseResponseDto.id());
+        }
         student.getCourseIds().add(assignCourseDto.courseId());
         student = userRepository.save(student);
         userServiceProducer.sendNotification(new NotificationDto(
@@ -211,6 +212,23 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void removeCourseFromStudents(Long courseId) {
         userRepository.removeCourseFromStudents(courseId);
+    }
+
+    @Override
+    @Transactional
+    public void expelStudentFromCourse(ExpelFromCourseDto expelFromCourseDto, String email, String token) {
+        Users student = getStudentById(expelFromCourseDto.studentId());
+        CourseResponseDto courseResponseDto = courseFeignClient.getCourseById(expelFromCourseDto.courseId(), token).getBody();
+        Users teacher = getUserByEmail(email);
+        if(!teacher.getRole().equals(Role.ROLE_TEACHER) || !courseResponseDto.teacherId().equals(teacher.getId())) {
+            throw BadRequestException.invalidTeacherException(teacher.getId(), courseResponseDto.id());
+        }
+        student.getCourseIds().remove(courseResponseDto.id());
+        userRepository.save(student);
+        userServiceProducer.sendNotification(new NotificationDto(
+                expelFromCourseDto.studentId(),
+                "Student with id %s was removed from the course with id %s".formatted(expelFromCourseDto.studentId(), expelFromCourseDto.courseId())
+        ));
     }
 
     private void reindexUsers() {

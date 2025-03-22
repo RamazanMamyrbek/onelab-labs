@@ -3,6 +3,7 @@ package com.onelab.users_service.service;
 
 import com.onelab.users_service.entity.Users;
 import org.onelab.common.dto.request.AssignCourseDto;
+import org.onelab.common.dto.request.ExpelFromCourseDto;
 import org.onelab.common.dto.request.UserEditRequestDto;
 import org.onelab.common.dto.request.UserRegisterRequestDto;
 import org.onelab.common.dto.response.CourseResponseDto;
@@ -14,7 +15,7 @@ import java.util.List;
 
 public interface UserService {
 
-    void assignCourseToStudent(AssignCourseDto assignCourseDto, String token);
+    void assignCourseToStudent(AssignCourseDto assignCourseDto, String email, String token);
 
     List<CourseResponseDto> getStudentCourses(Long studentId, String token);
 
@@ -41,4 +42,6 @@ public interface UserService {
     Users getUserById(Long senderId);
 
     void removeCourseFromStudents(Long chatId);
+
+    void expelStudentFromCourse(ExpelFromCourseDto expelFromCourseDto, String email, String token);
 }
