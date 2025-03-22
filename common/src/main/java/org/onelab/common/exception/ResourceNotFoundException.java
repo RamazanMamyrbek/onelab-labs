@@ -33,4 +33,8 @@ public class ResourceNotFoundException extends RuntimeException{
     public static ResourceNotFoundException resourceNotFoundById(Long resourceId) {
         return new ResourceNotFoundException("Resource with id %s was not found".formatted(resourceId));
     }
+
+    public static ResourceNotFoundException reviewNotFound(Long reviewId) {
+        return new ResourceNotFoundException("Review with id %s was not found".formatted(reviewId));
+    }
 }

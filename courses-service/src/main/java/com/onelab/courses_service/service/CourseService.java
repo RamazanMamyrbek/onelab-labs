@@ -1,6 +1,7 @@
 package com.onelab.courses_service.service;
 
 
+import com.onelab.courses_service.entity.Course;
 import jakarta.servlet.http.HttpServletRequest;
 import org.onelab.common.dto.request.*;
 import org.onelab.common.dto.response.CourseResponseDto;
@@ -37,5 +38,8 @@ public interface CourseService {
     Long getStudentCount(Long courseId, HttpServletRequest servletRequest);
 
     LessonResponseDto uploadFileForLesson(Long lessonId, MultipartFile file, String email, String token);
+
+    Course getCourseById(Long courseId);
+
 }
 

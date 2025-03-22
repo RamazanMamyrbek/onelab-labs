@@ -231,10 +231,13 @@ public class CourseServiceImpl implements CourseService {
     }
 
 
-    private Course getCourseById(Long courseId) {
+    @Override
+    public Course getCourseById(Long courseId) {
         return courseRepository.findById(courseId)
                 .orElseThrow(() -> ResourceNotFoundException.courseNotFound(courseId));
     }
+
+
 
     private Lesson getLessonById(Long lessonId) {
         return lessonRepository.findById(lessonId).orElseThrow(

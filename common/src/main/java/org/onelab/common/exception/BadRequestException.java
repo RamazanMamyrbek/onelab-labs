@@ -33,4 +33,12 @@ public class BadRequestException extends RuntimeException{
     public static BadRequestException accessDeniedForCourse(Long userId, Long courseId) {
         return new BadRequestException("User with id %s has no access to course with id %s".formatted(userId, courseId));
     }
+
+    public static BadRequestException reviewExistsByCourseAndUser(Long courseId, Long userId) {
+        return new BadRequestException("User with id %s already left review for course with id %s".formatted(userId, courseId));
+    }
+
+    public static BadRequestException accessDeniedForReview(Long userId, Long reviewId) {
+        return new BadRequestException("User with id %s is not owner for review with id %s".formatted(userId, reviewId));
+    }
 }
