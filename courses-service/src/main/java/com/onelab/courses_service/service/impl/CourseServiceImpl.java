@@ -53,8 +53,12 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public List<LessonResponseDto> getLessonsForCourse(Long courseId) {
+    public List<LessonResponseDto> getLessonsForCourse(Long courseId, String email, String token) {
+        UsersResponseDto user = userFeignClient.getProfileInfo(token).getBody();
         Course course = getCourseById(courseId);
+        if(!user.id().equals(course.getTeacherId()) && !userFeignClient.studentHasCourse(courseId, token)) {
+            throw BadRequestException.accessDeniedForCourse(user.id(), course.getId());
+        }
         return lessonRepository.findByCourse(course)
                 .stream()
                 .map(courseMapper::mapToLessonResponseDto)

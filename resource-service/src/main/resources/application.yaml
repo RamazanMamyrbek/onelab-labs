@@ -34,5 +34,4 @@ minio:
   secretKey: minioadmin
   bucketName: projectbucket
   allowedTypes:
-    allowedAchievementTypes: image/png,image/jpeg,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/msword
     allowedImageTypes: image/png,image/jpeg

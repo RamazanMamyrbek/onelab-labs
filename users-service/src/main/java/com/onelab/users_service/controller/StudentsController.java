@@ -59,4 +59,10 @@ public class StudentsController {
         userService.removeCourseFromStudents(courseId);
         return ResponseEntity.noContent().build();
     }
+
+    @Hidden
+    @GetMapping("/has-course")
+    boolean studentHasCourse(@RequestParam Long courseId, Principal principal) {
+        return userService.studentHasCourse(courseId, principal.getName());
+    }
 }

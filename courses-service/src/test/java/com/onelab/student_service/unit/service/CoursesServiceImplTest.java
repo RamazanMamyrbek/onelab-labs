@@ -21,7 +21,6 @@ import org.onelab.common.dto.response.LessonResponseDto;
 import org.onelab.common.dto.response.UsersResponseDto;
 import org.onelab.common.enums.Role;
 import org.onelab.common.exception.BadRequestException;
-import org.onelab.common.exception.ResourceNotFoundException;
 import org.onelab.common.feign.UserFeignClient;
 import org.springframework.http.ResponseEntity;
 
@@ -96,7 +95,7 @@ class CoursesServiceImplTest {
         when(lessonRepository.findByCourse(course)).thenReturn(List.of(lesson));
         when(courseMapper.mapToLessonResponseDto(lesson)).thenReturn(lessonResponseDto);
 
-        List<LessonResponseDto> lessons = courseService.getLessonsForCourse(1L);
+        List<LessonResponseDto> lessons = courseService.getLessonsForCourse(1L, principal.getName(), servletRequest.getHeader("Authorization"));
 
         assertThat(lessons).hasSize(1);
         assertThat(lessons.get(0).id()).isEqualTo(10L);

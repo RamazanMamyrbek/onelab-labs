@@ -54,10 +54,12 @@ public class CoursesRestController {
         return ResponseEntity.ok(responseDtoList);
     }
 
-    @GetMapping("/{courseId}/courses")
+    @GetMapping("/{courseId}/lessons")
     @Operation(summary = "Get lessons for course")
-    public ResponseEntity<List<LessonResponseDto>> getLessons(@PathVariable Long courseId) {
-        List<LessonResponseDto> responseDtos = courseService.getLessonsForCourse(courseId);
+    public ResponseEntity<List<LessonResponseDto>> getLessons(@PathVariable Long courseId,
+                                                              Principal principal,
+                                                              HttpServletRequest servletRequest) {
+        List<LessonResponseDto> responseDtos = courseService.getLessonsForCourse(courseId, principal.getName(), servletRequest.getHeader("Authorization"));
         return ResponseEntity.ok(responseDtos);
     }
 

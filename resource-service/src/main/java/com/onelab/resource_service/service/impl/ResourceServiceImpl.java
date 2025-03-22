@@ -28,8 +28,6 @@ public class ResourceServiceImpl implements ResourceService {
     private final ResourceRepository resourceRepository;
     private final MinioService minioService;
     private final ResourceMapper resourceMapper;
-    @Value("${minio.allowedTypes.allowedAchievementTypes}")
-    private Set<String> allowedAchievementTypes;
     @Value("${minio.allowedTypes.allowedImageTypes}")
     private Set<String> allowedImageTypes;
 
@@ -118,10 +116,6 @@ public class ResourceServiceImpl implements ResourceService {
         if (file.getContentType() == null) {
             log.error("File has no content type");
             throw new FileException("File has no content type");
-        }
-        if (!allowedAchievementTypes.contains(file.getContentType())) {
-            log.error("Invalid file type: {}", file.getContentType());
-            throw new FileException("Invalid file type. Submit only image/png,image/jpeg,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/msword files");
         }
     }
 

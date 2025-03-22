@@ -231,6 +231,12 @@ public class UserServiceImpl implements UserService {
         ));
     }
 
+    @Override
+    public boolean studentHasCourse(Long courseId, String email) {
+        Users student = getUserByEmail(email);
+        return student.getCourseIds().contains(courseId);
+    }
+
     private void reindexUsers() {
         usersSearchRepository.saveAll(
                 userRepository.findAll().stream().map(

@@ -44,4 +44,6 @@ public interface UserService {
     void removeCourseFromStudents(Long chatId);
 
     void expelStudentFromCourse(ExpelFromCourseDto expelFromCourseDto, String email, String token);
+
+    boolean studentHasCourse(Long courseId, String email);
 }

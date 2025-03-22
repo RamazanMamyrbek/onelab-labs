@@ -21,4 +21,7 @@ public interface UserFeignClient {
     @DeleteMapping("/api/users/students/courses/{courseId}")
     ResponseEntity<Void> removeCourseFromStudents(@PathVariable Long courseId,
                                                          @RequestHeader(name = "Authorization") String token);
+
+    @GetMapping("/api/users/students/has-course")
+    boolean studentHasCourse(@RequestParam Long courseId, @RequestHeader(name = "Authorization") String token);
 }

@@ -30,7 +30,7 @@ public class ResourceController {
         String encodedFileName = URLEncoder.encode(fileDto.name(), StandardCharsets.UTF_8);
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename='%s'".formatted(encodedFileName))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=%s".formatted(encodedFileName))
                 .header("File-Name", encodedFileName)
                 .contentType(MediaType.valueOf(fileDto.contentType()))
                 .body(fileDto.file());

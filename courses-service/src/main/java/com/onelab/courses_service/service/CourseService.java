@@ -13,7 +13,7 @@ import java.util.Set;
 public interface CourseService {
     List<CourseResponseDto> getAllCourses();
 
-    List<LessonResponseDto> getLessonsForCourse(Long courseId);
+    List<LessonResponseDto> getLessonsForCourse(Long courseId, String email, String token);
 
     CourseResponseDto createCourse(CourseRequestDto requestDto, String token);
     CourseResponseDto updateCourse(CourseUpdateRequestDto requestDto, String token);
