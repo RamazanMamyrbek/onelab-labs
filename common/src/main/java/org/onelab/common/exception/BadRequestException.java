@@ -41,4 +41,8 @@ public class BadRequestException extends RuntimeException{
     public static BadRequestException accessDeniedForReview(Long userId, Long reviewId) {
         return new BadRequestException("User with id %s is not owner for review with id %s".formatted(userId, reviewId));
     }
+
+    public static BadRequestException invalidConfirmationCode() {
+        return new BadRequestException("Invalid confirmation code");
+    }
 }

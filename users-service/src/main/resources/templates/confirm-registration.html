@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org" style="font-size: 16px;">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mail</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Lato', Arial, sans-serif; box-sizing: border-box; ">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="background-color: #EAEFF4; height: 100%; padding: 7% 10%;">
+    <tr><td>
+        <table align="center" cellpadding="0" cellspacing="0" border="0" role="presentation" style="width: 100%; max-width: 963px;">
+            <tr>
+                <td>
+                    <table class="wrapper" width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="background-color: #ffffff; height: 100%;">
+                        <tr><td align="center" style="padding: 0 7%;"><p style="padding: 1.875rem 0; font-family: 'Montserrat', Arial, sans-serif;  font-size: 2rem; font-weight: 500; line-height: 2.9rem; color: #000000; margin: 0;">Use this code to activate your account for EduLab</p></td></tr>
+                        <tr><td align="center" style="padding: 0 7%;">
+                            <p style="font-size: 2.5rem; font-weight: 500; background-color: #EAEFF4; padding: 0.94rem ; margin: 0; color: #000000; " th:text="${code}"> CODE</p>
+                        </td></tr>
+                        <tr><td align="center" style="padding: 0 7%;"><p style="padding: 1.875rem 0; font-size: 1.25rem; font-weight: 400; line-height: 1.6rem; color: #868F95; margin: 0;"></p></td></tr>
+                    </table>
+                </td>
+            </tr>
+
+            <tr>
+                <td align="center" style="border-top: 1px solid #B1B9BE; background-color: #ffffff;">
+                    <p style=" padding: 2.9rem 1.875rem 5.1rem 1.875rem; font-size: 1.25rem; font-weight: 400; line-height: 1.6rem; margin: 0; color: #000000;">You have received this email from your account on the EduLab website</p>
+                </td>
+            </tr>
+        </table>
+    </td>
+    </tr>
+</table>
+</body>
+</html>

@@ -2,12 +2,10 @@ package com.onelab.users_service.service;
 
 
 import com.onelab.users_service.entity.Users;
-import org.onelab.common.dto.request.AssignCourseDto;
-import org.onelab.common.dto.request.ExpelFromCourseDto;
-import org.onelab.common.dto.request.UserEditRequestDto;
-import org.onelab.common.dto.request.UserRegisterRequestDto;
+import org.onelab.common.dto.request.*;
 import org.onelab.common.dto.response.CourseResponseDto;
 import org.onelab.common.dto.response.NotificationResponseDto;
+import org.onelab.common.dto.response.PendingUserResponseDto;
 import org.onelab.common.dto.response.UsersResponseDto;
 import org.onelab.common.enums.Role;
 
@@ -21,7 +19,7 @@ public interface UserService {
 
     List<UsersResponseDto> getAllUsers(Role role);
 
-    UsersResponseDto registerUser(UserRegisterRequestDto requestDto);
+    PendingUserResponseDto registerUser(UserRegisterRequestDto requestDto);
 
     Users getUserByEmail(String username);
 
@@ -46,4 +44,8 @@ public interface UserService {
     void expelStudentFromCourse(ExpelFromCourseDto expelFromCourseDto, String email, String token);
 
     boolean studentHasCourse(Long courseId, String email);
+
+    UsersResponseDto confirmEmail(ConfirmEmailRequestDto confirmEmailRequestDto);
+
+    void resendCode(String email);
 }

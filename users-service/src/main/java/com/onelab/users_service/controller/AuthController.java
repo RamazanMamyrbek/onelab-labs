@@ -5,9 +5,12 @@ import com.onelab.users_service.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
+import org.onelab.common.dto.request.ConfirmEmailRequestDto;
 import org.onelab.common.dto.request.UserLoginRequestDto;
 import org.onelab.common.dto.request.UserRegisterRequestDto;
+import org.onelab.common.dto.response.PendingUserResponseDto;
 import org.onelab.common.dto.response.UsersResponseDto;
 import org.onelab.common.enums.Role;
 import org.springframework.http.HttpStatus;
@@ -29,9 +32,23 @@ public class AuthController {
 
     @PostMapping("/register")
     @Operation(summary = "Register a user")
-    public ResponseEntity<UsersResponseDto> registerUser(@RequestBody @Valid UserRegisterRequestDto requestDto) {
-        UsersResponseDto responseDto = userService.registerUser(requestDto);
+    public ResponseEntity<PendingUserResponseDto> registerUser(@RequestBody @Valid UserRegisterRequestDto requestDto) {
+        PendingUserResponseDto responseDto = userService.registerUser(requestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
+    }
+
+    @PostMapping("/confirm-code")
+    @Operation(summary = "Confirm email via code")
+    public ResponseEntity<UsersResponseDto> confirmEmail(@RequestBody ConfirmEmailRequestDto confirmEmailRequestDto) {
+        UsersResponseDto responseDto = userService.confirmEmail(confirmEmailRequestDto);
+        return ResponseEntity.ok(responseDto);
+    }
+
+    @PostMapping("/resend-code")
+    @Operation(summary = "Resend confirmation code")
+    public ResponseEntity<Map<String, String>> resendCode(@RequestParam @Email(message = "Invalid email format") String email) {
+        userService.resendCode(email);
+        return ResponseEntity.ok().body(Map.of("message", "Confirmation code was sent"));
     }
 
     @PostMapping("/login")

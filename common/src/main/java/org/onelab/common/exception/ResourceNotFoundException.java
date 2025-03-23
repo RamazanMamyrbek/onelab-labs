@@ -37,4 +37,8 @@ public class ResourceNotFoundException extends RuntimeException{
     public static ResourceNotFoundException reviewNotFound(Long reviewId) {
         return new ResourceNotFoundException("Review with id %s was not found".formatted(reviewId));
     }
+
+    public static ResourceNotFoundException pendingUserNotFound(String email) {
+        return new ResourceNotFoundException("Pending user with email %s was not found".formatted(email));
+    }
 }

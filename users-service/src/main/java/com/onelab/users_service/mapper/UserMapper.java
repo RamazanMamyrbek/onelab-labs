@@ -1,5 +1,6 @@
 package com.onelab.users_service.mapper;
 
+import com.onelab.users_service.entity.PendingUser;
 import com.onelab.users_service.entity.Users;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -16,4 +17,7 @@ public interface UserMapper {
     default String mapRoleToString(Role role) {
         return role.name();
     }
+
+    @Mapping(target = "id", ignore = true)
+    Users pendingUserToUser(PendingUser pendingUser);
 }
