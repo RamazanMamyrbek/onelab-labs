@@ -7,6 +7,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -39,6 +40,12 @@ public class Users extends BaseEntity implements UserDetails {
 
     @Enumerated(EnumType.STRING)
     private Role role;
+
+    @Builder.Default
+    private BigDecimal balance = new BigDecimal(0);
+
+    @Builder.Default
+    private String balanceCurrency = "USD";
 
     @ElementCollection
     @CollectionTable(name = "user_courses", joinColumns = @JoinColumn(name = "user_id"))

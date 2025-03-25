@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.onelab.common.dto.request.UserEditRequestDto;
 import org.onelab.common.dto.response.NotificationResponseDto;
 import org.onelab.common.dto.response.UsersResponseDto;
+import org.onelab.common.enums.Currency;
 import org.onelab.common.enums.Role;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -85,6 +86,23 @@ public class UserRestController {
         userService.deleteUserByEmail(principal.getName());
         return ResponseEntity.noContent().build();
     }
+
+    @PatchMapping("/balance")
+    @Operation(summary = "Replenish a balance")
+    public ResponseEntity<UsersResponseDto> replenishBalance(@RequestParam Long balance,
+                                                             @RequestParam Currency currency,
+                                                             Principal principal) {
+        UsersResponseDto responseDto = userService.replenishBalance(principal.getName(), balance, currency);
+        return ResponseEntity.ok(responseDto);
+    }
+
+    @PatchMapping("/balance/clear")
+    @Operation(summary = "Clear a balance")
+    public ResponseEntity<UsersResponseDto> clearBalance(Principal principal) {
+        UsersResponseDto responseDto = userService.clearBalance(principal.getName());
+        return ResponseEntity.ok(responseDto);
+    }
+
 
 
 }

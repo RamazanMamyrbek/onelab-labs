@@ -41,4 +41,8 @@ public class ResourceNotFoundException extends RuntimeException{
     public static ResourceNotFoundException pendingUserNotFound(String email) {
         return new ResourceNotFoundException("Pending user with email %s was not found".formatted(email));
     }
+
+    public static ResourceNotFoundException exchangeRateNotFound(String currencyPair) {
+        return new ResourceNotFoundException("Currency pair " + currencyPair + " is not found. Try to update exchanges by invoking /api/exchange-rates");
+    }
 }

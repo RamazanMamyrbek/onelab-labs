@@ -53,6 +53,15 @@ public class StudentsController {
         return ResponseEntity.ok(responseDtoList);
     }
 
+    @PostMapping("/courses/{courseId}/buy")
+    @Operation(summary = "Buy a specific course")
+    public ResponseEntity<CourseResponseDto> buyCourse(@PathVariable Long courseId,
+                                                       Principal principal,
+                                                       HttpServletRequest servletRequest) {
+        CourseResponseDto responseDto = userService.buyCourse(courseId, principal.getName(), servletRequest.getHeader("Authorization"));
+        return ResponseEntity.ok(responseDto);
+    }
+
     @Hidden
     @DeleteMapping("/courses/{courseId}")
     public ResponseEntity<Void> removeCourseFromStudents(@PathVariable Long courseId) {

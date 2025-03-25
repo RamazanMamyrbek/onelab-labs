@@ -7,6 +7,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.elasticsearch.repository.config.EnableElasticsearchRepositories;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -15,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @EnableFeign
 @EnableElasticsearchRepositories("com.onelab.users_service.repository.elastic")
 @EnableJpaRepositories("com.onelab.users_service.repository.jpa")
+@EnableScheduling
 public class UsersServiceApplication {
 
 	public static void main(String[] args) {

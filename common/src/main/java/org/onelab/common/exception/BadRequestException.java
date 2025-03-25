@@ -45,4 +45,16 @@ public class BadRequestException extends RuntimeException{
     public static BadRequestException invalidConfirmationCode() {
         return new BadRequestException("Invalid confirmation code");
     }
+
+    public static BadRequestException cannotBuyOwnCourse() {
+        return new BadRequestException("User cannot buy own course");
+    }
+
+    public static BadRequestException userAlreadyHasCourse(Long userId, Long courseId) {
+        return new BadRequestException("User with id %s has already been enrolled to the course with id %s".formatted(userId, courseId));
+    }
+
+    public static BadRequestException balanceNotEnough(Long userId, Long courseId) {
+        return new BadRequestException("User with id %s does not have enough balance to buy course with id %s".formatted(userId, courseId));
+    }
 }

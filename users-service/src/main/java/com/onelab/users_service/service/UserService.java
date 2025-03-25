@@ -7,6 +7,7 @@ import org.onelab.common.dto.response.CourseResponseDto;
 import org.onelab.common.dto.response.NotificationResponseDto;
 import org.onelab.common.dto.response.PendingUserResponseDto;
 import org.onelab.common.dto.response.UsersResponseDto;
+import org.onelab.common.enums.Currency;
 import org.onelab.common.enums.Role;
 
 import java.util.List;
@@ -48,4 +49,10 @@ public interface UserService {
     UsersResponseDto confirmEmail(ConfirmEmailRequestDto confirmEmailRequestDto);
 
     void resendCode(String email);
+
+    UsersResponseDto replenishBalance(String email, Long balance, Currency currency);
+
+    UsersResponseDto clearBalance(String name);
+
+    CourseResponseDto buyCourse(Long courseId, String email, String token);
 }

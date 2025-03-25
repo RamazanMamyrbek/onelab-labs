@@ -9,6 +9,7 @@ import com.onelab.users_service.repository.elastic.UsersSearchRepository;
 import com.onelab.users_service.repository.jpa.PendingUserRepository;
 import com.onelab.users_service.repository.jpa.UserRepository;
 import com.onelab.users_service.service.EmailService;
+import com.onelab.users_service.service.ExchangeRateService;
 import com.onelab.users_service.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.onelab.common.dto.request.*;
@@ -16,6 +17,7 @@ import org.onelab.common.dto.response.CourseResponseDto;
 import org.onelab.common.dto.response.NotificationResponseDto;
 import org.onelab.common.dto.response.PendingUserResponseDto;
 import org.onelab.common.dto.response.UsersResponseDto;
+import org.onelab.common.enums.Currency;
 import org.onelab.common.enums.Role;
 import org.onelab.common.exception.BadRequestException;
 import org.onelab.common.exception.ResourceNotFoundException;
@@ -29,6 +31,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -48,6 +51,7 @@ public class UserServiceImpl implements UserService {
     private final UsersSearchRepository usersSearchRepository;
     private final EmailService emailService;
     private static final Random RANDOM = new Random();
+    private final ExchangeRateService exchangeRateService;
 
 
     @Override
@@ -59,12 +63,43 @@ public class UserServiceImpl implements UserService {
         if(!teacher.getRole().equals(Role.ROLE_TEACHER) || !courseResponseDto.teacherId().equals(teacher.getId())) {
             throw BadRequestException.invalidTeacherException(teacher.getId(), courseResponseDto.id());
         }
+        if(student.getCourseIds().contains(assignCourseDto.courseId())) {
+            throw BadRequestException.userAlreadyHasCourse(student.getId(), courseResponseDto.id());
+        }
         student.getCourseIds().add(assignCourseDto.courseId());
         student = userRepository.save(student);
         userServiceProducer.sendNotification(new NotificationDto(
                 assignCourseDto.userId(),
-                "Student with id %s was assigned to the course with id %s".formatted(assignCourseDto.userId(), assignCourseDto.courseId())
+                "You have been enrolled to the course: %s".formatted(courseResponseDto.name())
         ));
+    }
+
+    @Override
+    @Transactional
+    public CourseResponseDto buyCourse(Long courseId, String email, String token) {
+        Users user = getUserByEmail(email);
+        CourseResponseDto courseResponseDto = courseFeignClient.getCourseById(courseId, token).getBody();
+        canBuyCourse(user, courseResponseDto);
+        user.setBalance(user.getBalance().subtract(new BigDecimal(courseResponseDto.price())));
+        user.getCourseIds().add(courseId);
+        user = userRepository.save(user);
+        userServiceProducer.sendNotification(new NotificationDto(
+                user.getId(),
+                "You have been enrolled to the course: ".formatted(courseResponseDto.name())
+        ));
+        return courseResponseDto;
+    }
+
+    private void canBuyCourse(Users user, CourseResponseDto courseResponseDto) {
+        if(courseResponseDto.teacherId().equals(user.getId())) {
+            throw BadRequestException.cannotBuyOwnCourse();
+        }
+        if(user.getCourseIds().contains(courseResponseDto.id())) {
+            throw BadRequestException.userAlreadyHasCourse(user.getId(), courseResponseDto.id());
+        }
+        if(user.getBalance().compareTo(new BigDecimal(courseResponseDto.price())) < 0) {
+            throw BadRequestException.balanceNotEnough(user.getId(), courseResponseDto.id());
+        }
     }
 
 
@@ -141,7 +176,7 @@ public class UserServiceImpl implements UserService {
         user.setAge(requestDto.age());
         user = userRepository.save(user);
         reindexUsers();
-        userServiceProducer.sendNotification(new NotificationDto(user.getId(), "User with email %s was edited".formatted(email)));
+        userServiceProducer.sendNotification(new NotificationDto(user.getId(), "Your account was edited"));
         return userMapper.mapToUserResponseDTO(user);
     }
 
@@ -244,7 +279,7 @@ public class UserServiceImpl implements UserService {
         userRepository.save(student);
         userServiceProducer.sendNotification(new NotificationDto(
                 expelFromCourseDto.studentId(),
-                "Student with id %s was removed from the course with id %s".formatted(expelFromCourseDto.studentId(), expelFromCourseDto.courseId())
+                "You have been removed from the course: %s".formatted(courseResponseDto.name())
         ));
     }
 
@@ -284,6 +319,31 @@ public class UserServiceImpl implements UserService {
         emailService.sendConfirmationCode(email, code);
         pendingUser.setCode(code);
         pendingUserRepository.save(pendingUser);
+    }
+
+    @Override
+    @Transactional
+    public UsersResponseDto replenishBalance(String email, Long balance, Currency currency) {
+        Users user = getUserByEmail(email);
+        BigDecimal newBalance = exchangeRateService.toUsd(new BigDecimal(balance), currency.name());
+        user.setBalance(user.getBalance().add(newBalance));
+        userServiceProducer.sendNotification(new NotificationDto(
+                user.getId(),
+                "Balance was replenished with %s USD".formatted(newBalance)
+        ));
+        return userMapper.mapToUserResponseDTO(userRepository.save(user));
+    }
+
+    @Override
+    @Transactional
+    public UsersResponseDto clearBalance(String email) {
+        Users user = getUserByEmail(email);
+        user.setBalance(new BigDecimal(0));
+        userServiceProducer.sendNotification(new NotificationDto(
+                user.getId(),
+                "Balance was cleared"
+        ));
+        return userMapper.mapToUserResponseDTO(userRepository.save(user));
     }
 
     private void reindexUsers() {

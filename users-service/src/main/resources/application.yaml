@@ -55,3 +55,6 @@ security:
     secret: ZnJmcmZyZnN2dmZ2cnZlcmVldmV2UlZCUlZSUlZEU0RTVlJTVlZFVg==
     access: 3600000
     refresh: 2592000000
+
+openexchangerates:
+  appId: ${OPENEX_APPID}
