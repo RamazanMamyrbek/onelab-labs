@@ -1,34 +1,29 @@
 package com.onelab.course_service.junit.controller;
 
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+
 import com.onelab.users_service.controller.AuthController;
 import com.onelab.users_service.service.AuthService;
 import com.onelab.users_service.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.MockitoAnnotations;
+import org.onelab.common.dto.request.ConfirmEmailRequestDto;
 import org.onelab.common.dto.request.UserLoginRequestDto;
 import org.onelab.common.dto.request.UserRegisterRequestDto;
+import org.onelab.common.dto.response.PendingUserResponseDto;
 import org.onelab.common.dto.response.UsersResponseDto;
 import org.onelab.common.enums.Role;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.http.ResponseEntity;
 
+import java.math.BigDecimal;
 import java.util.Map;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
 class AuthControllerTest {
 
     @Mock
@@ -40,46 +35,63 @@ class AuthControllerTest {
     @InjectMocks
     private AuthController authController;
 
-    private MockMvc mockMvc;
-    private ObjectMapper objectMapper;
-
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(authController).build();
-        objectMapper = new ObjectMapper();
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    void shouldRegisterUserSuccessfully() throws Exception {
-        UserRegisterRequestDto requestDto = new UserRegisterRequestDto("john@example.com", "password123", "John Doe","Kazakhstan", 27L, Role.ROLE_STUDENT);
-        UsersResponseDto responseDto = new UsersResponseDto(1L,  "john@example.com", "John Doe","Kazakhstan", 27L, Role.ROLE_STUDENT.name());
-
-        when(userService.registerUser(any(UserRegisterRequestDto.class))).thenReturn(responseDto);
-
-        mockMvc.perform(post("/api/users/auth/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestDto)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.name").value("John Doe"))
-                .andExpect(jsonPath("$.email").value("john@example.com"));
-    }
-
-    @Test
-    void shouldLoginSuccessfully() throws Exception {
-        UserLoginRequestDto requestDto = new UserLoginRequestDto("john@example.com", "password123");
-        Map<String, String> tokens = Map.of(
-                "accessToken", "access_token_value",
-                "refreshToken", "refresh_token_value"
+    void registerUser_ShouldReturnCreatedResponse() {
+        UserRegisterRequestDto requestDto = new UserRegisterRequestDto(
+                "test@example.com", "password123", "John Doe", "USA", 25L, Role.ROLE_TEACHER
         );
+        PendingUserResponseDto responseDto = new PendingUserResponseDto("test@example.com", "123456");
 
-        when(authService.login(any(UserLoginRequestDto.class))).thenReturn(tokens);
+        when(userService.registerUser(requestDto)).thenReturn(responseDto);
 
-        mockMvc.perform(post("/api/users/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestDto)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.accessToken").value("access_token_value"))
-                .andExpect(jsonPath("$.refreshToken").value("refresh_token_value"));
+        ResponseEntity<PendingUserResponseDto> response = authController.registerUser(requestDto);
+
+        assertEquals(201, response.getStatusCodeValue());
+        assertEquals(responseDto, response.getBody());
+        verify(userService, times(1)).registerUser(requestDto);
+    }
+
+    @Test
+    void confirmEmail_ShouldReturnUserResponse() {
+        ConfirmEmailRequestDto requestDto = new ConfirmEmailRequestDto("test@example.com", "123456");
+        UsersResponseDto responseDto = new UsersResponseDto(1L, "test@example.com", "John Doe", "USA", 25L, "USER", BigDecimal.valueOf(100.0), "USD");
+
+        when(userService.confirmEmail(requestDto)).thenReturn(responseDto);
+
+        ResponseEntity<UsersResponseDto> response = authController.confirmEmail(requestDto);
+
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(responseDto, response.getBody());
+        verify(userService, times(1)).confirmEmail(requestDto);
+    }
+
+    @Test
+    void resendCode_ShouldReturnOkResponse() {
+        String email = "test@example.com";
+
+        ResponseEntity<Map<String, String>> response = authController.resendCode(email);
+
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(Map.of("message", "Confirmation code was sent"), response.getBody());
+        verify(userService, times(1)).resendCode(email);
+    }
+
+    @Test
+    void login_ShouldReturnTokenResponse() {
+        UserLoginRequestDto requestDto = new UserLoginRequestDto("test@example.com", "password123");
+        Map<String, String> tokenResponse = Map.of("token", "mocked_token");
+
+        when(authService.login(requestDto)).thenReturn(tokenResponse);
+
+        ResponseEntity<Map<String, String>> response = authController.login(requestDto);
+
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(tokenResponse, response.getBody());
+        verify(authService, times(1)).login(requestDto);
     }
 }

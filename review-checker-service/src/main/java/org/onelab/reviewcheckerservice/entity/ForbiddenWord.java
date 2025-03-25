@@ -1,10 +1,7 @@
 package org.onelab.reviewcheckerservice.entity;
 
 import jakarta.persistence.*;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 @Entity
 @Table(name = "forbidden_words")
@@ -12,6 +9,8 @@ import lombok.ToString;
 @Setter
 @ToString
 @EqualsAndHashCode
+@AllArgsConstructor
+@NoArgsConstructor
 public class ForbiddenWord {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
