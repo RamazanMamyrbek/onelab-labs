@@ -11,11 +11,14 @@ import lombok.RequiredArgsConstructor;
 import org.onelab.common.dto.request.NotificationDto;
 import org.onelab.common.dto.request.ReviewCreateRequestDto;
 import org.onelab.common.dto.response.OverallRatingResponseDto;
+import org.onelab.common.dto.response.ReviewCheckDto;
 import org.onelab.common.dto.response.ReviewResponseDto;
 import org.onelab.common.dto.response.UsersResponseDto;
+import org.onelab.common.enums.ReviewStatus;
 import org.onelab.common.exception.BadRequestException;
 import org.onelab.common.exception.ResourceNotFoundException;
 import org.onelab.common.feign.UserFeignClient;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +33,7 @@ public class ReviewServiceImpl implements ReviewService {
     private final ReviewRepository reviewRepository;
     private final UserFeignClient userFeignClient;
     private final NotificationProducer notificationProducer;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Override
     public List<ReviewResponseDto> getReviewsForCourse(Long courseId) {
@@ -56,8 +60,14 @@ public class ReviewServiceImpl implements ReviewService {
                 .rating(reviewCreateRequestDto.rating())
                 .course(course)
                 .userId(user.id())
+                .reviewStatus(ReviewStatus.PENDING)
                 .build();
         review = reviewRepository.save(review);
+        kafkaTemplate.send("review.created", new ReviewCheckDto(
+                review.getId(),
+                review.getText(),
+                review.getUserId()
+        ));
         notificationProducer.sendNotification(
                 new NotificationDto(course.getTeacherId(), "User with id %s left a review for your course '%s': '%s'"
                         .formatted(review.getUserId(), course.getName(), review.getText()))
@@ -85,6 +95,22 @@ public class ReviewServiceImpl implements ReviewService {
                 .average()
                 .orElse(0.0);
         return new OverallRatingResponseDto(courseId, overallRating);
+    }
+
+    @Override
+    @Transactional
+    public void approveReview(Long reviewId) {
+        Review review = getReviewById(reviewId);
+        review.setReviewStatus(ReviewStatus.APPROVED);
+        reviewRepository.save(review);
+    }
+
+    @Override
+    @Transactional
+    public void declineReview(Long reviewId) {
+        Review review = getReviewById(reviewId);
+        review.setReviewStatus(ReviewStatus.DECLINED);
+        reviewRepository.save(review);
     }
 
     private Review getReviewById(Long reviewId) {

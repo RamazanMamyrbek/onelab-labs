@@ -20,6 +20,8 @@
         <module>eureka-server</module>
         <module>resource-service</module>
         <module>common</module>
+        <module>review-checker-service</module>
+        <module>camunda-service</module>
     </modules>
     <packaging>pom</packaging>
     <url/>

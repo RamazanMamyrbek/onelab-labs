@@ -12,6 +12,7 @@
         <option value="$PROJECT_DIR$/common/pom.xml" />
         <option value="$PROJECT_DIR$/eureka-server/pom.xml" />
         <option value="$PROJECT_DIR$/resource-service/pom.xml" />
+        <option value="$PROJECT_DIR$/review-checker-service/pom.xml" />
       </list>
     </option>
     <option name="ignoredFiles">

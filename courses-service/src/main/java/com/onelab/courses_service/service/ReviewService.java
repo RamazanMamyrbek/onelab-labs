@@ -14,4 +14,8 @@ public interface ReviewService {
     void deleteReview(Long courseId, Long reviewId, String token);
 
     OverallRatingResponseDto getOverallRating(Long courseId);
+
+    void approveReview(Long aLong);
+
+    void declineReview(Long aLong);
 }

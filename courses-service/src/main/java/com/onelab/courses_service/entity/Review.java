@@ -2,6 +2,7 @@ package com.onelab.courses_service.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.onelab.common.enums.ReviewStatus;
 
 import java.time.LocalDateTime;
 
@@ -33,4 +34,7 @@ public class Review {
 
     @Column(name = "user_id")
     private Long userId;
+
+    @Enumerated(EnumType.STRING)
+    private ReviewStatus reviewStatus;
 }

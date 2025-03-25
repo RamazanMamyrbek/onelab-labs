@@ -1,0 +1,29 @@
+{
+  "components": [
+    {
+      "label": "Decision",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_0e33el1",
+        "columns": null
+      },
+      "id": "Field_0hdw2td",
+      "key": "decision",
+      "description": "Make a decision: Approve|Decline",
+      "defaultValue": "Decline",
+      "validate": {
+        "required": true,
+        "pattern": "Approve|Decline"
+      }
+    }
+  ],
+  "type": "default",
+  "id": "DecisionForm",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.33.1"
+  },
+  "executionPlatform": "Camunda Platform",
+  "executionPlatformVersion": "7.22.0",
+  "schemaVersion": 18
+}

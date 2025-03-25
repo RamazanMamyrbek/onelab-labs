@@ -1,5 +1,7 @@
 package org.onelab.common.dto.response;
 
+import org.onelab.common.enums.ReviewStatus;
+
 import java.time.LocalDateTime;
 
 public record ReviewResponseDto(
@@ -8,6 +10,8 @@ public record ReviewResponseDto(
         Long rating,
         Long courseId,
         Long userId,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+
+        ReviewStatus reviewStatus
 ) {
 }
